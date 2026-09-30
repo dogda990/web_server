@@ -1,0 +1,814 @@
+{
+  "started_at_utc": "2026-09-30T10:03:13.933517+00:00",
+  "host": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "processor": "arm",
+    "logical_cpus": 8,
+    "ram_bytes": 8589934592,
+    "python": "3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]",
+    "django_version": "6.0.8",
+    "granian_version": "2.8.3",
+    "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01) (Homebrew)"
+  },
+  "profile": {
+    "id": "05_runtime_isolation",
+    "title": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+    "method_under_test": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+    "comparison_scope": "Изолированное сравнение базовой конфигурации без пяти методов и конфигурации с единственным методом: Изоляция сетевой среды выполнения (Runtime Isolation).",
+    "request_script": "scripts/wrk_mixed_sleep.lua",
+    "request_contract": {
+      "distribution": "70% GET /rps_plain; 30% GET /rps_heavy",
+      "heavy_delay_ms": 25,
+      "django_behavior": "Both views return a short text body; only the heavy view sleeps."
+    },
+    "variants": [
+      {
+        "label": "baseline-no-method",
+        "url": "http://127.0.0.1:18150/post",
+        "server": "kubstu WSGI baseline; 2 worker(s), no tested method enabled",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--workers",
+          "2",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "reuseport",
+          "--python-mode",
+          "inline",
+          "--bounded-python-queue",
+          "false",
+          "--compact-body-buffer",
+          "false",
+          "--port",
+          "18150"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      },
+      {
+        "label": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+        "url": "http://127.0.0.1:18151/post",
+        "server": "kubstu WSGI; baseline plus Изоляция сетевой среды выполнения (Runtime Isolation)",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--workers",
+          "2",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "reuseport",
+          "--python-mode",
+          "blocking",
+          "--bounded-python-queue",
+          "false",
+          "--compact-body-buffer",
+          "false",
+          "--port",
+          "18151"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      }
+    ]
+  },
+  "load": {
+    "generator": "wrk",
+    "version": "wrk 4.2.0 [kqueue] Copyright (C) 2012 Will Glozer",
+    "cycles": 10,
+    "duration_seconds": 5,
+    "threads": 4,
+    "connections": 64,
+    "warmup_rounds_per_variant": 2,
+    "cooldown_seconds": 1.0
+  },
+  "summary": {
+    "baseline-no-method": {
+      "rounds": 10,
+      "mean_rps": 225.147,
+      "mean_successful_rps": 225.147,
+      "stdev_rps": 2.8973016181727913,
+      "median_p95_ms": 437.58799999999997,
+      "median_p99_ms": 489.923,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    },
+    "Изоляция сетевой среды выполнения (Runtime Isolation)": {
+      "rounds": 10,
+      "mean_rps": 7294.628,
+      "mean_successful_rps": 7294.628,
+      "stdev_rps": 33.43320066440948,
+      "median_p95_ms": 29.612000000000002,
+      "median_p99_ms": 30.4875,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    }
+  },
+  "paired_comparison": {
+    "baseline": "baseline-no-method",
+    "treatment": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+    "paired_cycles": 10,
+    "rps": {
+      "mean_treatment_minus_baseline": 7069.481,
+      "sample_sd": 34.78661346936024,
+      "ci95_low": 7044.597884687632,
+      "ci95_high": 7094.364115312367,
+      "relative_to_baseline_pct": 3139.940128005259
+    },
+    "successful_rps": {
+      "mean_treatment_minus_baseline": 7069.481,
+      "sample_sd": 34.78661346936024,
+      "ci95_low": 7044.597884687632,
+      "ci95_high": 7094.364115312367,
+      "relative_to_baseline_pct": 3139.940128005259
+    },
+    "p95_treatment_minus_baseline_median_ms": -407.9755,
+    "p99_treatment_minus_baseline_median_ms": -459.44100000000003
+  },
+  "rounds": [
+    {
+      "cycle": 1,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 223.75,
+      "successful_rps": 223.75,
+      "latency_percentiles_ms": {
+        "p95": 422.916,
+        "p99": 474.428
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18150/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18150/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   275.46ms  102.68ms 509.35ms   67.97%\n    Req/Sec    56.30     24.95   170.00     67.34%\n  Latency Distribution\n     50%  285.12ms\n     75%  354.41ms\n     90%  408.06ms\n     99%  474.43ms\n  1127 requests in 5.04s, 151.28KB read\nRequests/sec:    223.75\nTransfer/sec:     30.03KB\nCUSTOM_P95_MS: 422.916\nCUSTOM_P99_MS: 474.428\n\n"
+    },
+    {
+      "cycle": 1,
+      "position": 2,
+      "variant": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "rps": 7320.3,
+      "successful_rps": 7320.3,
+      "latency_percentiles_ms": {
+        "p95": 29.613,
+        "p99": 30.468
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18151/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18151/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    11.21ms   11.13ms  43.27ms   80.71%\n    Req/Sec     1.84k    87.90     2.10k    68.00%\n  Latency Distribution\n     50%   10.32ms\n     75%   20.64ms\n     90%   28.31ms\n     99%   30.47ms\n  36689 requests in 5.01s, 4.81MB read\nRequests/sec:   7320.30\nTransfer/sec:      0.96MB\nCUSTOM_P95_MS: 29.613\nCUSTOM_P99_MS: 30.468\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 1,
+      "variant": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "rps": 7304.67,
+      "successful_rps": 7304.67,
+      "latency_percentiles_ms": {
+        "p95": 29.585,
+        "p99": 30.489
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18151/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18151/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    11.21ms   11.13ms  41.57ms   80.71%\n    Req/Sec     1.84k    83.85     2.01k    69.00%\n  Latency Distribution\n     50%   10.26ms\n     75%   20.57ms\n     90%   28.31ms\n     99%   30.49ms\n  36607 requests in 5.01s, 4.80MB read\nRequests/sec:   7304.67\nTransfer/sec:      0.96MB\nCUSTOM_P95_MS: 29.585\nCUSTOM_P99_MS: 30.489\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 225.48,
+      "successful_rps": 225.48,
+      "latency_percentiles_ms": {
+        "p95": 463.218,
+        "p99": 508.022
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18150/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18150/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   276.10ms  117.08ms 536.64ms   66.08%\n    Req/Sec    56.58     29.20   150.00     70.85%\n  Latency Distribution\n     50%  298.89ms\n     75%  361.27ms\n     90%  413.54ms\n     99%  508.02ms\n  1135 requests in 5.03s, 152.25KB read\nRequests/sec:    225.48\nTransfer/sec:     30.24KB\nCUSTOM_P95_MS: 463.218\nCUSTOM_P99_MS: 508.022\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 223.9,
+      "successful_rps": 223.9,
+      "latency_percentiles_ms": {
+        "p95": 413.98,
+        "p99": 477.082
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18150/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18150/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   276.72ms   98.01ms 503.27ms   69.62%\n    Req/Sec    56.31     25.38   140.00     64.14%\n  Latency Distribution\n     50%  276.44ms\n     75%  354.34ms\n     90%  390.05ms\n     99%  477.08ms\n  1129 requests in 5.04s, 151.51KB read\nRequests/sec:    223.90\nTransfer/sec:     30.05KB\nCUSTOM_P95_MS: 413.980\nCUSTOM_P99_MS: 477.082\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 2,
+      "variant": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "rps": 7311.53,
+      "successful_rps": 7311.53,
+      "latency_percentiles_ms": {
+        "p95": 29.552,
+        "p99": 30.475
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18151/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18151/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    11.20ms   11.12ms  40.63ms   80.67%\n    Req/Sec     1.84k    88.64     2.08k    64.00%\n  Latency Distribution\n     50%   10.32ms\n     75%   20.51ms\n     90%   28.29ms\n     99%   30.48ms\n  36659 requests in 5.01s, 4.81MB read\nRequests/sec:   7311.53\nTransfer/sec:      0.96MB\nCUSTOM_P95_MS: 29.552\nCUSTOM_P99_MS: 30.475\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 1,
+      "variant": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "rps": 7300.16,
+      "successful_rps": 7300.16,
+      "latency_percentiles_ms": {
+        "p95": 29.676,
+        "p99": 30.503
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18151/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18151/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    11.22ms   11.13ms  36.06ms   80.71%\n    Req/Sec     1.84k    88.04     2.03k    69.50%\n  Latency Distribution\n     50%   10.29ms\n     75%   20.65ms\n     90%   28.32ms\n     99%   30.50ms\n  36581 requests in 5.01s, 4.80MB read\nRequests/sec:   7300.16\nTransfer/sec:      0.96MB\nCUSTOM_P95_MS: 29.676\nCUSTOM_P99_MS: 30.503\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 227.92,
+      "successful_rps": 227.92,
+      "latency_percentiles_ms": {
+        "p95": 421.02,
+        "p99": 507.128
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18150/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18150/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   270.98ms  106.60ms 569.29ms   67.68%\n    Req/Sec    57.13     27.58   130.00     65.66%\n  Latency Distribution\n     50%  277.81ms\n     75%  351.85ms\n     90%  389.61ms\n     99%  507.13ms\n  1148 requests in 5.04s, 153.99KB read\nRequests/sec:    227.92\nTransfer/sec:     30.57KB\nCUSTOM_P95_MS: 421.020\nCUSTOM_P99_MS: 507.128\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 225.55,
+      "successful_rps": 225.55,
+      "latency_percentiles_ms": {
+        "p95": 439.452,
+        "p99": 499.255
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18150/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18150/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   270.59ms  114.18ms 559.82ms   65.96%\n    Req/Sec    56.89     29.86   140.00     69.19%\n  Latency Distribution\n     50%  288.40ms\n     75%  359.03ms\n     90%  414.92ms\n     99%  499.25ms\n  1137 requests in 5.04s, 152.52KB read\nRequests/sec:    225.55\nTransfer/sec:     30.26KB\nCUSTOM_P95_MS: 439.452\nCUSTOM_P99_MS: 499.255\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 2,
+      "variant": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "rps": 7300.09,
+      "successful_rps": 7300.09,
+      "latency_percentiles_ms": {
+        "p95": 29.611,
+        "p99": 30.477
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18151/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18151/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    11.21ms   11.13ms  40.86ms   80.73%\n    Req/Sec     1.83k    91.22     2.06k    69.00%\n  Latency Distribution\n     50%   10.32ms\n     75%   20.59ms\n     90%   28.34ms\n     99%   30.48ms\n  36590 requests in 5.01s, 4.80MB read\nRequests/sec:   7300.09\nTransfer/sec:      0.96MB\nCUSTOM_P95_MS: 29.611\nCUSTOM_P99_MS: 30.477\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 1,
+      "variant": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "rps": 7308.08,
+      "successful_rps": 7308.08,
+      "latency_percentiles_ms": {
+        "p95": 29.589,
+        "p99": 30.505
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18151/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18151/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    11.22ms   11.14ms  41.05ms   80.66%\n    Req/Sec     1.84k    82.15     2.02k    68.50%\n  Latency Distribution\n     50%   10.36ms\n     75%   20.58ms\n     90%   28.36ms\n     99%   30.50ms\n  36594 requests in 5.01s, 4.80MB read\nRequests/sec:   7308.08\nTransfer/sec:      0.96MB\nCUSTOM_P95_MS: 29.589\nCUSTOM_P99_MS: 30.505\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 218.07,
+      "successful_rps": 218.07,
+      "latency_percentiles_ms": {
+        "p95": 442.707,
+        "p99": 504.207
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18150/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18150/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   284.17ms  108.02ms 612.17ms   70.32%\n    Req/Sec    55.51     25.73   171.00     73.23%\n  Latency Distribution\n     50%  294.72ms\n     75%  360.42ms\n     90%  413.67ms\n     99%  504.21ms\n  1111 requests in 5.09s, 149.10KB read\nRequests/sec:    218.07\nTransfer/sec:     29.27KB\nCUSTOM_P95_MS: 442.707\nCUSTOM_P99_MS: 504.207\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 226.8,
+      "successful_rps": 226.8,
+      "latency_percentiles_ms": {
+        "p95": 443.823,
+        "p99": 480.685
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18150/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18150/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   275.85ms  109.56ms 515.00ms   70.49%\n    Req/Sec    57.25     29.02   160.00     74.24%\n  Latency Distribution\n     50%  294.09ms\n     75%  358.13ms\n     90%  389.45ms\n     99%  480.69ms\n  1142 requests in 5.04s, 153.18KB read\nRequests/sec:    226.80\nTransfer/sec:     30.42KB\nCUSTOM_P95_MS: 443.823\nCUSTOM_P99_MS: 480.685\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 2,
+      "variant": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "rps": 7317.88,
+      "successful_rps": 7317.88,
+      "latency_percentiles_ms": {
+        "p95": 29.574,
+        "p99": 30.468
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18151/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18151/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    11.20ms   11.12ms  38.73ms   80.71%\n    Req/Sec     1.84k    77.20     2.02k    69.00%\n  Latency Distribution\n     50%   10.30ms\n     75%   20.58ms\n     90%   28.29ms\n     99%   30.47ms\n  36661 requests in 5.01s, 4.81MB read\nRequests/sec:   7317.88\nTransfer/sec:      0.96MB\nCUSTOM_P95_MS: 29.574\nCUSTOM_P99_MS: 30.468\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 1,
+      "variant": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "rps": 7205.91,
+      "successful_rps": 7205.91,
+      "latency_percentiles_ms": {
+        "p95": 29.658,
+        "p99": 30.486
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18151/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18151/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    11.18ms   11.18ms  42.09ms   80.53%\n    Req/Sec     1.84k    93.42     2.06k    70.15%\n  Latency Distribution\n     50%   10.21ms\n     75%   20.58ms\n     90%   28.35ms\n     99%   30.49ms\n  36784 requests in 5.10s, 4.82MB read\nRequests/sec:   7205.91\nTransfer/sec:      0.94MB\nCUSTOM_P95_MS: 29.658\nCUSTOM_P99_MS: 30.486\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 228.34,
+      "successful_rps": 228.34,
+      "latency_percentiles_ms": {
+        "p95": 444.627,
+        "p99": 480.414
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18150/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18150/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   272.37ms  110.78ms 498.62ms   67.33%\n    Req/Sec    57.38     29.87   140.00     64.97%\n  Latency Distribution\n     50%  276.78ms\n     75%  352.81ms\n     90%  410.55ms\n     99%  480.41ms\n  1151 requests in 5.04s, 154.40KB read\nRequests/sec:    228.34\nTransfer/sec:     30.63KB\nCUSTOM_P95_MS: 444.627\nCUSTOM_P99_MS: 480.414\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 226.09,
+      "successful_rps": 226.09,
+      "latency_percentiles_ms": {
+        "p95": 435.724,
+        "p99": 499.161
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18150/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18150/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   274.16ms  107.06ms 550.66ms   69.36%\n    Req/Sec    56.85     29.14   180.00     68.02%\n  Latency Distribution\n     50%  292.50ms\n     75%  352.00ms\n     90%  394.18ms\n     99%  499.16ms\n  1139 requests in 5.04s, 152.83KB read\nRequests/sec:    226.09\nTransfer/sec:     30.34KB\nCUSTOM_P95_MS: 435.724\nCUSTOM_P99_MS: 499.161\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 2,
+      "variant": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "rps": 7300.96,
+      "successful_rps": 7300.96,
+      "latency_percentiles_ms": {
+        "p95": 29.614,
+        "p99": 30.496
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18151/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18151/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    11.22ms   11.13ms  41.63ms   80.73%\n    Req/Sec     1.84k    90.08     2.08k    72.00%\n  Latency Distribution\n     50%   10.31ms\n     75%   20.61ms\n     90%   28.35ms\n     99%   30.50ms\n  36571 requests in 5.01s, 4.79MB read\nRequests/sec:   7300.96\nTransfer/sec:      0.96MB\nCUSTOM_P95_MS: 29.614\nCUSTOM_P99_MS: 30.496\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 1,
+      "variant": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "rps": 7276.7,
+      "successful_rps": 7276.7,
+      "latency_percentiles_ms": {
+        "p95": 29.711,
+        "p99": 30.568
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18151/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18151/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    11.25ms   11.17ms  47.14ms   80.64%\n    Req/Sec     1.83k    91.79     2.08k    73.50%\n  Latency Distribution\n     50%   10.37ms\n     75%   20.69ms\n     90%   28.44ms\n     99%   30.57ms\n  36490 requests in 5.01s, 4.78MB read\nRequests/sec:   7276.70\nTransfer/sec:      0.95MB\nCUSTOM_P95_MS: 29.711\nCUSTOM_P99_MS: 30.568\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 225.57,
+      "successful_rps": 225.57,
+      "latency_percentiles_ms": {
+        "p95": 428.697,
+        "p99": 478.166
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_mixed_sleep.lua",
+        "http://127.0.0.1:18150/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18150/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   275.71ms  101.29ms 504.44ms   70.71%\n    Req/Sec    56.81     29.03   148.00     64.97%\n  Latency Distribution\n     50%  284.08ms\n     75%  347.98ms\n     90%  396.60ms\n     99%  478.17ms\n  1137 requests in 5.04s, 152.55KB read\nRequests/sec:    225.57\nTransfer/sec:     30.26KB\nCUSTOM_P95_MS: 428.697\nCUSTOM_P99_MS: 478.166\n\n"
+    }
+  ],
+  "notes": [
+    "Order alternates between baseline-first and treatment-first by cycle.",
+    "p95/p99 are per-round wrk latency percentiles collected through the included Lua script; summary reports their median across rounds.",
+    "Both endpoints must use the same Django application, method, path and response body."
+  ]
+}

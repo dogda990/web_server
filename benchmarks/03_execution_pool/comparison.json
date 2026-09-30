@@ -1,0 +1,92 @@
+{
+  "id": "03_execution_pool",
+  "title": "Внедрение пула рабочих потоков (Execution Pool)",
+  "method_under_test": "Внедрение пула рабочих потоков (Execution Pool)",
+  "comparison_scope": "Изолированное сравнение базовой конфигурации без пяти методов и конфигурации с единственным методом: Внедрение пула рабочих потоков (Execution Pool).",
+  "request_script": "scripts/wrk_post_body.lua",
+  "request_contract": {
+    "method": "POST",
+    "path": "/post",
+    "content_type": "application/octet-stream",
+    "body_bytes": 1024,
+    "django_behavior": "Тестовое представление Django читает тело запроса и формирует JSON-ответ; записи в базу данных нет."
+  },
+  "variants": [
+    {
+      "label": "baseline-no-method",
+      "url": "http://127.0.0.1:18130/post",
+      "server": "kubstu WSGI baseline; 2 worker(s), no tested method enabled",
+      "command": [
+        "./target/release/kubstu_web_server",
+        "--interface",
+        "wsgi",
+        "config.wsgi:application",
+        "--working-dir",
+        "./django_test_app",
+        "--host",
+        "127.0.0.1",
+        "--workers",
+        "2",
+        "--runtime-threads",
+        "2",
+        "--python-threads",
+        "2",
+        "--python-queue-capacity",
+        "256",
+        "--listener-mode",
+        "reuseport",
+        "--python-mode",
+        "spawn",
+        "--bounded-python-queue",
+        "false",
+        "--compact-body-buffer",
+        "false",
+        "--port",
+        "18130"
+      ],
+      "cwd": ".",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+        "VIRTUAL_ENV": ".venv"
+      }
+    },
+    {
+      "label": "Внедрение пула рабочих потоков (Execution Pool)",
+      "url": "http://127.0.0.1:18131/post",
+      "server": "kubstu WSGI; baseline plus Внедрение пула рабочих потоков (Execution Pool)",
+      "command": [
+        "./target/release/kubstu_web_server",
+        "--interface",
+        "wsgi",
+        "config.wsgi:application",
+        "--working-dir",
+        "./django_test_app",
+        "--host",
+        "127.0.0.1",
+        "--workers",
+        "2",
+        "--runtime-threads",
+        "2",
+        "--python-threads",
+        "2",
+        "--python-queue-capacity",
+        "256",
+        "--listener-mode",
+        "reuseport",
+        "--python-mode",
+        "pool",
+        "--bounded-python-queue",
+        "true",
+        "--compact-body-buffer",
+        "false",
+        "--port",
+        "18131"
+      ],
+      "cwd": ".",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+        "VIRTUAL_ENV": ".venv"
+      }
+    }
+  ]
+}

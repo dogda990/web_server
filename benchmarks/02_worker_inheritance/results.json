@@ -1,0 +1,1329 @@
+{
+  "started_at_utc": "2026-09-30T10:05:39.771981+00:00",
+  "host": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "processor": "arm",
+    "logical_cpus": 8,
+    "ram_bytes": 8589934592,
+    "python": "3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]",
+    "django_version": "6.0.8",
+    "granian_version": "2.8.3",
+    "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01) (Homebrew)"
+  },
+  "profile": {
+    "id": "02_worker_inheritance",
+    "title": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+    "method_under_test": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+    "comparison_scope": "Изолированное сравнение базовой конфигурации без пяти методов и конфигурации с единственным методом: Механизм приёма унаследованных ресурсов (Worker Inheritance).",
+    "request_script": "scripts/wrk_post_body.lua",
+    "request_contract": {
+      "method": "POST",
+      "path": "/post",
+      "content_type": "application/octet-stream",
+      "body_bytes": 1024,
+      "django_behavior": "Тестовое представление Django читает тело запроса и формирует JSON-ответ; записи в базу данных нет."
+    },
+    "variants": [
+      {
+        "label": "baseline-no-method",
+        "url": "http://127.0.0.1:18120/post",
+        "server": "kubstu WSGI baseline; 1 worker(s), no tested method enabled",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--workers",
+          "1",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "shared",
+          "--python-mode",
+          "inline",
+          "--bounded-python-queue",
+          "false",
+          "--compact-body-buffer",
+          "false",
+          "--port",
+          "18120"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      },
+      {
+        "label": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "url": "http://127.0.0.1:18121/post",
+        "server": "kubstu WSGI; baseline plus Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--workers",
+          "1",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "shared",
+          "--python-mode",
+          "inline",
+          "--bounded-python-queue",
+          "false",
+          "--compact-body-buffer",
+          "false",
+          "--port",
+          "18121",
+          "--force-master"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      }
+    ]
+  },
+  "load": {
+    "generator": "wrk",
+    "version": "wrk 4.2.0 [kqueue] Copyright (C) 2012 Will Glozer",
+    "cycles": 10,
+    "duration_seconds": 5,
+    "threads": 4,
+    "connections": 64,
+    "warmup_rounds_per_variant": 2,
+    "cooldown_seconds": 1.0
+  },
+  "summary": {
+    "baseline-no-method": {
+      "rounds": 10,
+      "mean_rps": 12450.838,
+      "mean_successful_rps": 12450.838,
+      "stdev_rps": 224.32931253454652,
+      "median_p95_ms": 9.221499999999999,
+      "median_p99_ms": 11.749,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    },
+    "Механизм приёма унаследованных ресурсов (Worker Inheritance)": {
+      "rounds": 10,
+      "mean_rps": 12236.335,
+      "mean_successful_rps": 12236.335,
+      "stdev_rps": 356.0944518351524,
+      "median_p95_ms": 9.4085,
+      "median_p99_ms": 11.981,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    }
+  },
+  "paired_comparison": {
+    "baseline": "baseline-no-method",
+    "treatment": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+    "paired_cycles": 10,
+    "rps": {
+      "mean_treatment_minus_baseline": -214.50300000000044,
+      "sample_sd": 301.9256076162543,
+      "ci95_low": -430.4725630242677,
+      "ci95_high": 1.4665630242668044,
+      "relative_to_baseline_pct": -1.722799702317229
+    },
+    "successful_rps": {
+      "mean_treatment_minus_baseline": -214.50300000000044,
+      "sample_sd": 301.9256076162543,
+      "ci95_low": -430.4725630242677,
+      "ci95_high": 1.4665630242668044,
+      "relative_to_baseline_pct": -1.722799702317229
+    },
+    "p95_treatment_minus_baseline_median_ms": 0.2060000000000004,
+    "p99_treatment_minus_baseline_median_ms": 0.17600000000000016
+  },
+  "rounds": [
+    {
+      "cycle": 1,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 11958.75,
+      "successful_rps": 11958.75,
+      "latency_percentiles_ms": {
+        "p95": 9.505,
+        "p99": 11.525
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18120/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18120/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.37ms    2.46ms  18.72ms   67.59%\n    Req/Sec     3.00k    82.95     3.20k    61.27%\n  Latency Distribution\n     50%    5.38ms\n     75%    6.92ms\n     90%    8.49ms\n     99%   11.53ms\n  60996 requests in 5.10s, 81.44MB read\nRequests/sec:  11958.75\nTransfer/sec:     15.97MB\nCUSTOM_P95_MS: 9.505\nCUSTOM_P99_MS: 11.525\n\n"
+    },
+    {
+      "cycle": 1,
+      "position": 2,
+      "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+      "rps": 11467.75,
+      "successful_rps": 11467.75,
+      "latency_percentiles_ms": {
+        "p95": 9.876,
+        "p99": 12.094
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18121/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18121/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.60ms    2.56ms  19.14ms   67.08%\n    Req/Sec     2.88k   170.51     3.16k    81.86%\n  Latency Distribution\n     50%    5.61ms\n     75%    7.25ms\n     90%    8.87ms\n     99%   12.09ms\n  58504 requests in 5.10s, 78.11MB read\nRequests/sec:  11467.75\nTransfer/sec:     15.31MB\nCUSTOM_P95_MS: 9.876\nCUSTOM_P99_MS: 12.094\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 1,
+      "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+      "rps": 11727.24,
+      "successful_rps": 11727.24,
+      "latency_percentiles_ms": {
+        "p95": 9.545,
+        "p99": 11.683
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18121/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18121/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.47ms    2.45ms  21.67ms   67.32%\n    Req/Sec     2.95k   153.63     3.23k    78.43%\n  Latency Distribution\n     50%    5.45ms\n     75%    7.02ms\n     90%    8.62ms\n     99%   11.68ms\n  59823 requests in 5.10s, 79.87MB read\nRequests/sec:  11727.24\nTransfer/sec:     15.66MB\nCUSTOM_P95_MS: 9.545\nCUSTOM_P99_MS: 11.683\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 12509.09,
+      "successful_rps": 12509.09,
+      "latency_percentiles_ms": {
+        "p95": 9.095,
+        "p99": 11.241
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18120/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18120/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.12ms    2.37ms  22.00ms   67.76%\n    Req/Sec     3.16k   203.06     4.23k    89.16%\n  Latency Distribution\n     50%    5.13ms\n     75%    6.53ms\n     90%    8.06ms\n     99%   11.24ms\n  63812 requests in 5.10s, 85.20MB read\nRequests/sec:  12509.09\nTransfer/sec:     16.70MB\nCUSTOM_P95_MS: 9.095\nCUSTOM_P99_MS: 11.241\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 12519.81,
+      "successful_rps": 12519.81,
+      "latency_percentiles_ms": {
+        "p95": 9.26,
+        "p99": 12.013
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18120/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18120/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.15ms    2.45ms  20.53ms   68.56%\n    Req/Sec     3.15k   150.17     3.40k    86.76%\n  Latency Distribution\n     50%    5.13ms\n     75%    6.58ms\n     90%    8.15ms\n     99%   12.01ms\n  63868 requests in 5.10s, 85.27MB read\nRequests/sec:  12519.81\nTransfer/sec:     16.72MB\nCUSTOM_P95_MS: 9.260\nCUSTOM_P99_MS: 12.013\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 2,
+      "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+      "rps": 12414.98,
+      "successful_rps": 12414.98,
+      "latency_percentiles_ms": {
+        "p95": 9.325,
+        "p99": 11.978
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18121/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18121/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.19ms    2.47ms  20.49ms   67.62%\n    Req/Sec     3.12k   140.78     3.34k    85.78%\n  Latency Distribution\n     50%    5.19ms\n     75%    6.68ms\n     90%    8.27ms\n     99%   11.98ms\n  63332 requests in 5.10s, 84.56MB read\nRequests/sec:  12414.98\nTransfer/sec:     16.58MB\nCUSTOM_P95_MS: 9.325\nCUSTOM_P99_MS: 11.978\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 1,
+      "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+      "rps": 12405.68,
+      "successful_rps": 12405.68,
+      "latency_percentiles_ms": {
+        "p95": 9.372,
+        "p99": 11.984
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18121/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18121/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.20ms    2.47ms  22.39ms   68.56%\n    Req/Sec     3.12k   133.57     3.34k    86.76%\n  Latency Distribution\n     50%    5.17ms\n     75%    6.67ms\n     90%    8.22ms\n     99%   11.98ms\n  63280 requests in 5.10s, 84.49MB read\nRequests/sec:  12405.68\nTransfer/sec:     16.56MB\nCUSTOM_P95_MS: 9.372\nCUSTOM_P99_MS: 11.984\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 12673.84,
+      "successful_rps": 12673.84,
+      "latency_percentiles_ms": {
+        "p95": 9.184,
+        "p99": 11.82
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18120/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18120/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.09ms    2.42ms  17.28ms   67.41%\n    Req/Sec     3.18k   139.90     3.45k    85.78%\n  Latency Distribution\n     50%    5.10ms\n     75%    6.56ms\n     90%    8.06ms\n     99%   11.82ms\n  64668 requests in 5.10s, 86.34MB read\nRequests/sec:  12673.84\nTransfer/sec:     16.92MB\nCUSTOM_P95_MS: 9.184\nCUSTOM_P99_MS: 11.820\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 12694.31,
+      "successful_rps": 12694.31,
+      "latency_percentiles_ms": {
+        "p95": 9.208,
+        "p99": 11.678
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18120/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18120/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.03ms    2.45ms  20.66ms   67.55%\n    Req/Sec     3.22k   340.47     6.40k    97.03%\n  Latency Distribution\n     50%    5.01ms\n     75%    6.48ms\n     90%    8.09ms\n     99%   11.68ms\n  64745 requests in 5.10s, 86.44MB read\nRequests/sec:  12694.31\nTransfer/sec:     16.95MB\nCUSTOM_P95_MS: 9.208\nCUSTOM_P99_MS: 11.678\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 2,
+      "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+      "rps": 12172.64,
+      "successful_rps": 12172.64,
+      "latency_percentiles_ms": {
+        "p95": 9.463,
+        "p99": 12.238
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18121/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18121/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.30ms    2.52ms  24.24ms   69.13%\n    Req/Sec     3.06k   211.97     3.43k    90.69%\n  Latency Distribution\n     50%    5.24ms\n     75%    6.80ms\n     90%    8.41ms\n     99%   12.24ms\n  62110 requests in 5.10s, 82.93MB read\nRequests/sec:  12172.64\nTransfer/sec:     16.25MB\nCUSTOM_P95_MS: 9.463\nCUSTOM_P99_MS: 12.238\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 1,
+      "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+      "rps": 12414.58,
+      "successful_rps": 12414.58,
+      "latency_percentiles_ms": {
+        "p95": 9.445,
+        "p99": 11.791
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18121/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18121/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.19ms    2.47ms  25.80ms   68.47%\n    Req/Sec     3.12k   171.14     3.44k    88.73%\n  Latency Distribution\n     50%    5.15ms\n     75%    6.65ms\n     90%    8.33ms\n     99%   11.79ms\n  63332 requests in 5.10s, 84.56MB read\nRequests/sec:  12414.58\nTransfer/sec:     16.58MB\nCUSTOM_P95_MS: 9.445\nCUSTOM_P99_MS: 11.791\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 12427.2,
+      "successful_rps": 12427.2,
+      "latency_percentiles_ms": {
+        "p95": 9.221,
+        "p99": 11.603
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18120/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18120/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.18ms    2.42ms  19.13ms   67.71%\n    Req/Sec     3.12k   193.30     3.39k    77.94%\n  Latency Distribution\n     50%    5.17ms\n     75%    6.67ms\n     90%    8.23ms\n     99%   11.60ms\n  63394 requests in 5.10s, 84.64MB read\nRequests/sec:  12427.20\nTransfer/sec:     16.59MB\nCUSTOM_P95_MS: 9.221\nCUSTOM_P99_MS: 11.603\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 12230.56,
+      "successful_rps": 12230.56,
+      "latency_percentiles_ms": {
+        "p95": 9.817,
+        "p99": 13.09
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18120/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18120/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.33ms    2.78ms  33.79ms   71.73%\n    Req/Sec     3.07k   329.45     3.46k    90.20%\n  Latency Distribution\n     50%    5.21ms\n     75%    6.75ms\n     90%    8.48ms\n     99%   13.09ms\n  62394 requests in 5.10s, 83.30MB read\nRequests/sec:  12230.56\nTransfer/sec:     16.33MB\nCUSTOM_P95_MS: 9.817\nCUSTOM_P99_MS: 13.090\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 2,
+      "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+      "rps": 12398.33,
+      "successful_rps": 12398.33,
+      "latency_percentiles_ms": {
+        "p95": 9.553,
+        "p99": 12.398
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18121/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18121/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.21ms    2.54ms  18.79ms   67.46%\n    Req/Sec     3.12k   156.52     3.34k    85.78%\n  Latency Distribution\n     50%    5.12ms\n     75%    6.71ms\n     90%    8.44ms\n     99%   12.40ms\n  63242 requests in 5.10s, 84.44MB read\nRequests/sec:  12398.33\nTransfer/sec:     16.55MB\nCUSTOM_P95_MS: 9.553\nCUSTOM_P99_MS: 12.398\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 1,
+      "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+      "rps": 12374.56,
+      "successful_rps": 12374.56,
+      "latency_percentiles_ms": {
+        "p95": 9.35,
+        "p99": 12.071
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18121/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18121/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.21ms    2.46ms  20.62ms   68.31%\n    Req/Sec     3.11k   137.14     3.43k    81.86%\n  Latency Distribution\n     50%    5.20ms\n     75%    6.63ms\n     90%    8.32ms\n     99%   12.07ms\n  63121 requests in 5.10s, 84.28MB read\nRequests/sec:  12374.56\nTransfer/sec:     16.52MB\nCUSTOM_P95_MS: 9.350\nCUSTOM_P99_MS: 12.071\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 12576.86,
+      "successful_rps": 12576.86,
+      "latency_percentiles_ms": {
+        "p95": 9.006,
+        "p99": 11.363
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18120/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18120/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.07ms    2.37ms  24.67ms   67.41%\n    Req/Sec     3.19k   336.06     6.26k    97.03%\n  Latency Distribution\n     50%    5.07ms\n     75%    6.49ms\n     90%    8.05ms\n     99%   11.36ms\n  64144 requests in 5.10s, 85.64MB read\nRequests/sec:  12576.86\nTransfer/sec:     16.79MB\nCUSTOM_P95_MS: 9.006\nCUSTOM_P99_MS: 11.363\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 12339.59,
+      "successful_rps": 12339.59,
+      "latency_percentiles_ms": {
+        "p95": 9.335,
+        "p99": 11.968
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18120/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18120/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.18ms    2.50ms  26.62ms   68.52%\n    Req/Sec     3.13k   310.64     5.65k    93.56%\n  Latency Distribution\n     50%    5.12ms\n     75%    6.69ms\n     90%    8.29ms\n     99%   11.97ms\n  62928 requests in 5.10s, 84.02MB read\nRequests/sec:  12339.59\nTransfer/sec:     16.48MB\nCUSTOM_P95_MS: 9.335\nCUSTOM_P99_MS: 11.968\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 2,
+      "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+      "rps": 12401.63,
+      "successful_rps": 12401.63,
+      "latency_percentiles_ms": {
+        "p95": 9.182,
+        "p99": 11.626
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18121/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18121/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.19ms    2.40ms  17.89ms   67.46%\n    Req/Sec     3.12k   139.59     3.35k    81.86%\n  Latency Distribution\n     50%    5.18ms\n     75%    6.67ms\n     90%    8.21ms\n     99%   11.63ms\n  63277 requests in 5.10s, 84.48MB read\nRequests/sec:  12401.63\nTransfer/sec:     16.56MB\nCUSTOM_P95_MS: 9.182\nCUSTOM_P99_MS: 11.626\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 1,
+      "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+      "rps": 12585.96,
+      "successful_rps": 12585.96,
+      "latency_percentiles_ms": {
+        "p95": 9.202,
+        "p99": 11.557
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18121/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18121/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.11ms    2.40ms  20.47ms   67.71%\n    Req/Sec     3.16k   124.79     3.42k    77.45%\n  Latency Distribution\n     50%    5.08ms\n     75%    6.56ms\n     90%    8.19ms\n     99%   11.56ms\n  64206 requests in 5.10s, 85.72MB read\nRequests/sec:  12585.96\nTransfer/sec:     16.80MB\nCUSTOM_P95_MS: 9.202\nCUSTOM_P99_MS: 11.557\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 12578.37,
+      "successful_rps": 12578.37,
+      "latency_percentiles_ms": {
+        "p95": 9.222,
+        "p99": 11.832
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18120/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18120/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.12ms    2.46ms  20.77ms   66.87%\n    Req/Sec     3.16k   162.40     3.46k    84.31%\n  Latency Distribution\n     50%    5.09ms\n     75%    6.60ms\n     90%    8.22ms\n     99%   11.83ms\n  64152 requests in 5.10s, 85.65MB read\nRequests/sec:  12578.37\nTransfer/sec:     16.79MB\nCUSTOM_P95_MS: 9.222\nCUSTOM_P99_MS: 11.832\n\n"
+    }
+  ],
+  "notes": [
+    "Order alternates between baseline-first and treatment-first by cycle.",
+    "p95/p99 are per-round wrk latency percentiles collected through the included Lua script; summary reports their median across rounds.",
+    "Both endpoints must use the same Django application, method, path and response body."
+  ],
+  "startup_measurement": {
+    "definition": "process launch to first successful HTTP 2xx response from /rps_plain",
+    "started_at_utc": "2026-09-30T10:05:53.992862+00:00",
+    "runs_per_variant": 40,
+    "order": "alternating baseline-first and treatment-first by cycle",
+    "timeout_seconds": 30,
+    "summary": {
+      "baseline-no-method": {
+        "runs": 40,
+        "mean_ms": 160.59402917744592,
+        "median_ms": 146.1489790235646,
+        "stdev_ms": 102.81557975314598,
+        "min_ms": 116.91462504677474,
+        "max_ms": 792.8921249695122
+      },
+      "Механизм приёма унаследованных ресурсов (Worker Inheritance)": {
+        "runs": 40,
+        "mean_ms": 129.71626983198803,
+        "median_ms": 129.1802705381997,
+        "stdev_ms": 4.799398554225251,
+        "min_ms": 122.88020900450647,
+        "max_ms": 143.12637504190207
+      }
+    },
+    "paired_comparison": {
+      "treatment_minus_baseline_median_ms": -17.149937455542386,
+      "treatment_minus_baseline_stdev_ms": 101.4144936194952,
+      "paired_cycles": 40
+    },
+    "measurements": [
+      {
+        "cycle": 1,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.7928921249695122
+      },
+      {
+        "cycle": 1,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13829654199071229
+      },
+      {
+        "cycle": 2,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.1327536249300465
+      },
+      {
+        "cycle": 2,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.1484865410020575
+      },
+      {
+        "cycle": 3,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14558595896232873
+      },
+      {
+        "cycle": 3,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13337099994532764
+      },
+      {
+        "cycle": 4,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12794604094233364
+      },
+      {
+        "cycle": 4,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.15205066604539752
+      },
+      {
+        "cycle": 5,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.1514111669966951
+      },
+      {
+        "cycle": 5,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.1339616250479594
+      },
+      {
+        "cycle": 6,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12699383299332112
+      },
+      {
+        "cycle": 6,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.1439222500193864
+      },
+      {
+        "cycle": 7,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14800874993670732
+      },
+      {
+        "cycle": 7,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13554145896341652
+      },
+      {
+        "cycle": 8,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12706287496257573
+      },
+      {
+        "cycle": 8,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14772837504278868
+      },
+      {
+        "cycle": 9,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14682916598394513
+      },
+      {
+        "cycle": 9,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13446945801842958
+      },
+      {
+        "cycle": 10,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13245195895433426
+      },
+      {
+        "cycle": 10,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.1510167500237003
+      },
+      {
+        "cycle": 11,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14680799993220717
+      },
+      {
+        "cycle": 11,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13629883306566626
+      },
+      {
+        "cycle": 12,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13371349999215454
+      },
+      {
+        "cycle": 12,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14644241705536842
+      },
+      {
+        "cycle": 13,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14199754199944437
+      },
+      {
+        "cycle": 13,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.1334880000213161
+      },
+      {
+        "cycle": 14,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12979241705033928
+      },
+      {
+        "cycle": 14,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14943633298389614
+      },
+      {
+        "cycle": 15,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14137191697955132
+      },
+      {
+        "cycle": 15,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13325170800089836
+      },
+      {
+        "cycle": 16,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.1286907501053065
+      },
+      {
+        "cycle": 16,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.1475572920171544
+      },
+      {
+        "cycle": 17,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.1489821249851957
+      },
+      {
+        "cycle": 17,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13392458308953792
+      },
+      {
+        "cycle": 18,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13209220895078033
+      },
+      {
+        "cycle": 18,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.15385895792860538
+      },
+      {
+        "cycle": 19,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14601975004188716
+      },
+      {
+        "cycle": 19,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.13572287501301616
+      },
+      {
+        "cycle": 20,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12488458293955773
+      },
+      {
+        "cycle": 20,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14237295801285654
+      },
+      {
+        "cycle": 21,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14779570908285677
+      },
+      {
+        "cycle": 21,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.1268181250197813
+      },
+      {
+        "cycle": 22,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12476387491915375
+      },
+      {
+        "cycle": 22,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14580962504260242
+      },
+      {
+        "cycle": 23,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14881799998693168
+      },
+      {
+        "cycle": 23,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12424445908982307
+      },
+      {
+        "cycle": 24,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12664829194545746
+      },
+      {
+        "cycle": 24,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14541962498333305
+      },
+      {
+        "cycle": 25,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14756154199130833
+      },
+      {
+        "cycle": 25,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12696704198606312
+      },
+      {
+        "cycle": 26,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12444933399092406
+      },
+      {
+        "cycle": 26,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14160091697704047
+      },
+      {
+        "cycle": 27,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.12382862495724112
+      },
+      {
+        "cycle": 27,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12604904209729284
+      },
+      {
+        "cycle": 28,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.1248277920531109
+      },
+      {
+        "cycle": 28,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14197608397807926
+      },
+      {
+        "cycle": 29,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14207429205998778
+      },
+      {
+        "cycle": 29,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.1255044579738751
+      },
+      {
+        "cycle": 30,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12421825004275888
+      },
+      {
+        "cycle": 30,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.11691462504677474
+      },
+      {
+        "cycle": 31,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.12041600001975894
+      },
+      {
+        "cycle": 31,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12415533291641623
+      },
+      {
+        "cycle": 32,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12288020900450647
+      },
+      {
+        "cycle": 32,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14523983397521079
+      },
+      {
+        "cycle": 33,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14627820800524205
+      },
+      {
+        "cycle": 33,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12646558310370892
+      },
+      {
+        "cycle": 34,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12514670798555017
+      },
+      {
+        "cycle": 34,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.1450738749699667
+      },
+      {
+        "cycle": 35,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.1453411659458652
+      },
+      {
+        "cycle": 35,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12986624997574836
+      },
+      {
+        "cycle": 36,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12388233304955065
+      },
+      {
+        "cycle": 36,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14652404107619077
+      },
+      {
+        "cycle": 37,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14294866600539535
+      },
+      {
+        "cycle": 37,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.1337277920683846
+      },
+      {
+        "cycle": 38,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.14312637504190207
+      },
+      {
+        "cycle": 38,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14534925005864352
+      },
+      {
+        "cycle": 39,
+        "position": 1,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14773358404636383
+      },
+      {
+        "cycle": 39,
+        "position": 2,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.1305318750673905
+      },
+      {
+        "cycle": 40,
+        "position": 1,
+        "variant": "Механизм приёма унаследованных ресурсов (Worker Inheritance)",
+        "startup_seconds": 0.12966979097109288
+      },
+      {
+        "cycle": 40,
+        "position": 2,
+        "variant": "baseline-no-method",
+        "startup_seconds": 0.14427845797035843
+      }
+    ]
+  }
+}

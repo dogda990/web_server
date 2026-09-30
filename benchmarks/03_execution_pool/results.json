@@ -1,0 +1,816 @@
+{
+  "started_at_utc": "2026-09-29T19:28:15.718841+00:00",
+  "host": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "processor": "arm",
+    "logical_cpus": 8,
+    "ram_bytes": 8589934592,
+    "python": "3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]",
+    "django_version": "6.0.8",
+    "granian_version": "2.8.3",
+    "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01) (Homebrew)"
+  },
+  "profile": {
+    "id": "03_execution_pool",
+    "title": "Внедрение пула рабочих потоков (Execution Pool)",
+    "method_under_test": "Внедрение пула рабочих потоков (Execution Pool)",
+    "comparison_scope": "Изолированное сравнение базовой конфигурации без пяти методов и конфигурации с единственным методом: Внедрение пула рабочих потоков (Execution Pool).",
+    "request_script": "scripts/wrk_post_body.lua",
+    "request_contract": {
+      "method": "POST",
+      "path": "/post",
+      "content_type": "application/octet-stream",
+      "body_bytes": 1024,
+      "django_behavior": "Тестовое представление Django читает тело запроса и формирует JSON-ответ; записи в базу данных нет."
+    },
+    "variants": [
+      {
+        "label": "baseline-no-method",
+        "url": "http://127.0.0.1:18130/post",
+        "server": "kubstu WSGI baseline; 2 worker(s), no tested method enabled",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--workers",
+          "2",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "reuseport",
+          "--python-mode",
+          "spawn",
+          "--bounded-python-queue",
+          "false",
+          "--compact-body-buffer",
+          "false",
+          "--port",
+          "18130"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      },
+      {
+        "label": "Внедрение пула рабочих потоков (Execution Pool)",
+        "url": "http://127.0.0.1:18131/post",
+        "server": "kubstu WSGI; baseline plus Внедрение пула рабочих потоков (Execution Pool)",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--workers",
+          "2",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "reuseport",
+          "--python-mode",
+          "pool",
+          "--bounded-python-queue",
+          "true",
+          "--compact-body-buffer",
+          "false",
+          "--port",
+          "18131"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      }
+    ]
+  },
+  "load": {
+    "generator": "wrk",
+    "version": "wrk 4.2.0 [kqueue] Copyright (C) 2012 Will Glozer",
+    "cycles": 10,
+    "duration_seconds": 5,
+    "threads": 4,
+    "connections": 64,
+    "warmup_rounds_per_variant": 2,
+    "cooldown_seconds": 1.0
+  },
+  "summary": {
+    "baseline-no-method": {
+      "rounds": 10,
+      "mean_rps": 10219.241,
+      "mean_successful_rps": 10219.241,
+      "stdev_rps": 150.6982346317003,
+      "median_p95_ms": 11.6115,
+      "median_p99_ms": 17.747999999999998,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    },
+    "Внедрение пула рабочих потоков (Execution Pool)": {
+      "rounds": 10,
+      "mean_rps": 12423.757,
+      "mean_successful_rps": 12423.757,
+      "stdev_rps": 210.18582445329452,
+      "median_p95_ms": 6.0195,
+      "median_p99_ms": 10.032,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    }
+  },
+  "paired_comparison": {
+    "baseline": "baseline-no-method",
+    "treatment": "Внедрение пула рабочих потоков (Execution Pool)",
+    "paired_cycles": 10,
+    "rps": {
+      "mean_treatment_minus_baseline": 2204.5159999999996,
+      "sample_sd": 160.37751866559518,
+      "ci95_low": 2089.7968051010102,
+      "ci95_high": 2319.235194898989,
+      "relative_to_baseline_pct": 21.572208738398476
+    },
+    "successful_rps": {
+      "mean_treatment_minus_baseline": 2204.5159999999996,
+      "sample_sd": 160.37751866559518,
+      "ci95_low": 2089.7968051010102,
+      "ci95_high": 2319.235194898989,
+      "relative_to_baseline_pct": 21.572208738398476
+    },
+    "p95_treatment_minus_baseline_median_ms": -5.5649999999999995,
+    "p99_treatment_minus_baseline_median_ms": -7.8405
+  },
+  "rounds": [
+    {
+      "cycle": 1,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 10426.65,
+      "successful_rps": 10426.65,
+      "latency_percentiles_ms": {
+        "p95": 11.028,
+        "p99": 16.273
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18130/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18130/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     6.19ms    2.71ms  32.80ms   80.84%\n    Req/Sec     2.65k   279.51     5.31k    98.51%\n  Latency Distribution\n     50%    5.41ms\n     75%    5.65ms\n     90%   10.57ms\n     99%   16.27ms\n  53189 requests in 5.10s, 71.01MB read\nRequests/sec:  10426.65\nTransfer/sec:     13.92MB\nCUSTOM_P95_MS: 11.028\nCUSTOM_P99_MS: 16.273\n\n"
+    },
+    {
+      "cycle": 1,
+      "position": 2,
+      "variant": "Внедрение пула рабочих потоков (Execution Pool)",
+      "rps": 12466.15,
+      "successful_rps": 12466.15,
+      "latency_percentiles_ms": {
+        "p95": 5.95,
+        "p99": 9.524
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18131/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18131/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.17ms    1.18ms  43.17ms   96.34%\n    Req/Sec     3.13k   156.78     3.34k    81.37%\n  Latency Distribution\n     50%    4.97ms\n     75%    5.24ms\n     90%    5.54ms\n     99%    9.52ms\n  63608 requests in 5.10s, 84.93MB read\nRequests/sec:  12466.15\nTransfer/sec:     16.64MB\nCUSTOM_P95_MS: 5.950\nCUSTOM_P99_MS: 9.524\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 1,
+      "variant": "Внедрение пула рабочих потоков (Execution Pool)",
+      "rps": 12736.73,
+      "successful_rps": 12736.73,
+      "latency_percentiles_ms": {
+        "p95": 5.574,
+        "p99": 8.562
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18131/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18131/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.05ms    1.00ms  48.10ms   97.11%\n    Req/Sec     3.20k    98.18     3.34k    84.80%\n  Latency Distribution\n     50%    4.90ms\n     75%    5.12ms\n     90%    5.37ms\n     99%    8.56ms\n  64986 requests in 5.10s, 86.77MB read\nRequests/sec:  12736.73\nTransfer/sec:     17.01MB\nCUSTOM_P95_MS: 5.574\nCUSTOM_P99_MS: 8.562\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 10402.5,
+      "successful_rps": 10402.5,
+      "latency_percentiles_ms": {
+        "p95": 11.227,
+        "p99": 16.997
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18130/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18130/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     6.29ms    2.97ms  55.44ms   79.76%\n    Req/Sec     2.61k   137.90     2.86k    81.86%\n  Latency Distribution\n     50%    5.42ms\n     75%    5.67ms\n     90%   10.62ms\n     99%   17.00ms\n  53077 requests in 5.10s, 70.87MB read\nRequests/sec:  10402.50\nTransfer/sec:     13.89MB\nCUSTOM_P95_MS: 11.227\nCUSTOM_P99_MS: 16.997\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 10278.82,
+      "successful_rps": 10278.82,
+      "latency_percentiles_ms": {
+        "p95": 11.576,
+        "p99": 17.709
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18130/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18130/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     6.39ms    3.07ms  45.17ms   80.21%\n    Req/Sec     2.58k   171.76     2.98k    80.88%\n  Latency Distribution\n     50%    5.43ms\n     75%    5.71ms\n     90%   10.68ms\n     99%   17.71ms\n  52451 requests in 5.10s, 70.03MB read\nRequests/sec:  10278.82\nTransfer/sec:     13.72MB\nCUSTOM_P95_MS: 11.576\nCUSTOM_P99_MS: 17.709\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 2,
+      "variant": "Внедрение пула рабочих потоков (Execution Pool)",
+      "rps": 12439.05,
+      "successful_rps": 12439.05,
+      "latency_percentiles_ms": {
+        "p95": 6.092,
+        "p99": 9.692
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18131/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18131/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.18ms    1.26ms  50.11ms   96.04%\n    Req/Sec     3.13k   147.58     3.34k    83.33%\n  Latency Distribution\n     50%    4.97ms\n     75%    5.22ms\n     90%    5.51ms\n     99%    9.69ms\n  63462 requests in 5.10s, 84.73MB read\nRequests/sec:  12439.05\nTransfer/sec:     16.61MB\nCUSTOM_P95_MS: 6.092\nCUSTOM_P99_MS: 9.692\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 1,
+      "variant": "Внедрение пула рабочих потоков (Execution Pool)",
+      "rps": 12564.57,
+      "successful_rps": 12564.57,
+      "latency_percentiles_ms": {
+        "p95": 5.78,
+        "p99": 9.152
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18131/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18131/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.12ms    1.08ms  36.98ms   96.71%\n    Req/Sec     3.16k   115.23     3.35k    77.45%\n  Latency Distribution\n     50%    4.96ms\n     75%    5.18ms\n     90%    5.43ms\n     99%    9.15ms\n  64097 requests in 5.10s, 85.58MB read\nRequests/sec:  12564.57\nTransfer/sec:     16.78MB\nCUSTOM_P95_MS: 5.780\nCUSTOM_P99_MS: 9.152\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 10349.48,
+      "successful_rps": 10349.48,
+      "latency_percentiles_ms": {
+        "p95": 11.373,
+        "p99": 17.344
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18130/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18130/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     6.33ms    3.02ms  51.52ms   79.67%\n    Req/Sec     2.60k   165.52     2.88k    79.90%\n  Latency Distribution\n     50%    5.42ms\n     75%    5.69ms\n     90%   10.63ms\n     99%   17.34ms\n  52814 requests in 5.10s, 70.51MB read\nRequests/sec:  10349.48\nTransfer/sec:     13.82MB\nCUSTOM_P95_MS: 11.373\nCUSTOM_P99_MS: 17.344\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 9984.12,
+      "successful_rps": 9984.12,
+      "latency_percentiles_ms": {
+        "p95": 12.334,
+        "p99": 19.793
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18130/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18130/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     6.64ms    3.43ms  58.84ms   81.16%\n    Req/Sec     2.51k   250.41     2.87k    83.33%\n  Latency Distribution\n     50%    5.47ms\n     75%    5.78ms\n     90%   10.83ms\n     99%   19.79ms\n  50922 requests in 5.10s, 67.99MB read\nRequests/sec:   9984.12\nTransfer/sec:     13.33MB\nCUSTOM_P95_MS: 12.334\nCUSTOM_P99_MS: 19.793\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 2,
+      "variant": "Внедрение пула рабочих потоков (Execution Pool)",
+      "rps": 11926.3,
+      "successful_rps": 11926.3,
+      "latency_percentiles_ms": {
+        "p95": 8.485,
+        "p99": 104.102
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18131/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18131/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     7.52ms   15.10ms 166.24ms   97.25%\n    Req/Sec     3.01k   503.13     3.32k    90.95%\n  Latency Distribution\n     50%    5.00ms\n     75%    5.26ms\n     90%    5.99ms\n     99%  104.10ms\n  59759 requests in 5.01s, 79.79MB read\nRequests/sec:  11926.30\nTransfer/sec:     15.92MB\nCUSTOM_P95_MS: 8.485\nCUSTOM_P99_MS: 104.102\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 1,
+      "variant": "Внедрение пула рабочих потоков (Execution Pool)",
+      "rps": 12453.81,
+      "successful_rps": 12453.81,
+      "latency_percentiles_ms": {
+        "p95": 5.971,
+        "p99": 10.878
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18131/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18131/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.15ms    1.48ms  58.12ms   94.58%\n    Req/Sec     3.16k   320.64     6.00k    93.07%\n  Latency Distribution\n     50%    4.95ms\n     75%    5.19ms\n     90%    5.45ms\n     99%   10.88ms\n  63525 requests in 5.10s, 84.82MB read\nRequests/sec:  12453.81\nTransfer/sec:     16.63MB\nCUSTOM_P95_MS: 5.971\nCUSTOM_P99_MS: 10.878\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 10133.91,
+      "successful_rps": 10133.91,
+      "latency_percentiles_ms": {
+        "p95": 11.862,
+        "p99": 18.153
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18130/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18130/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     6.49ms    3.14ms  41.50ms   80.45%\n    Req/Sec     2.55k   199.32     2.85k    79.90%\n  Latency Distribution\n     50%    5.45ms\n     75%    5.74ms\n     90%   10.74ms\n     99%   18.15ms\n  51698 requests in 5.10s, 69.02MB read\nRequests/sec:  10133.91\nTransfer/sec:     13.53MB\nCUSTOM_P95_MS: 11.862\nCUSTOM_P99_MS: 18.153\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 10144.33,
+      "successful_rps": 10144.33,
+      "latency_percentiles_ms": {
+        "p95": 11.647,
+        "p99": 17.787
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18130/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18130/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     6.46ms    3.01ms  36.91ms   81.01%\n    Req/Sec     2.55k   161.61     3.02k    80.88%\n  Latency Distribution\n     50%    5.46ms\n     75%    5.74ms\n     90%   10.72ms\n     99%   17.79ms\n  51762 requests in 5.10s, 69.11MB read\nRequests/sec:  10144.33\nTransfer/sec:     13.54MB\nCUSTOM_P95_MS: 11.647\nCUSTOM_P99_MS: 17.787\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 2,
+      "variant": "Внедрение пула рабочих потоков (Execution Pool)",
+      "rps": 12517.32,
+      "successful_rps": 12517.32,
+      "latency_percentiles_ms": {
+        "p95": 5.858,
+        "p99": 9.947
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18131/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18131/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.14ms    1.14ms  38.09ms   96.48%\n    Req/Sec     3.15k   143.22     3.31k    87.25%\n  Latency Distribution\n     50%    4.95ms\n     75%    5.18ms\n     90%    5.46ms\n     99%    9.95ms\n  63890 requests in 5.10s, 85.30MB read\nRequests/sec:  12517.32\nTransfer/sec:     16.71MB\nCUSTOM_P95_MS: 5.858\nCUSTOM_P99_MS: 9.947\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 1,
+      "variant": "Внедрение пула рабочих потоков (Execution Pool)",
+      "rps": 12454.82,
+      "successful_rps": 12454.82,
+      "latency_percentiles_ms": {
+        "p95": 6.068,
+        "p99": 10.117
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18131/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18131/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.18ms    1.27ms  43.28ms   96.39%\n    Req/Sec     3.13k   161.68     3.37k    88.73%\n  Latency Distribution\n     50%    4.97ms\n     75%    5.21ms\n     90%    5.51ms\n     99%   10.12ms\n  63548 requests in 5.10s, 84.85MB read\nRequests/sec:  12454.82\nTransfer/sec:     16.63MB\nCUSTOM_P95_MS: 6.068\nCUSTOM_P99_MS: 10.117\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 10121.51,
+      "successful_rps": 10121.51,
+      "latency_percentiles_ms": {
+        "p95": 11.856,
+        "p99": 18.346
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18130/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18130/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     6.51ms    3.19ms  60.14ms   81.21%\n    Req/Sec     2.54k   178.35     2.91k    81.86%\n  Latency Distribution\n     50%    5.45ms\n     75%    5.75ms\n     90%   10.74ms\n     99%   18.35ms\n  51671 requests in 5.11s, 68.99MB read\nRequests/sec:  10121.51\nTransfer/sec:     13.51MB\nCUSTOM_P95_MS: 11.856\nCUSTOM_P99_MS: 18.346\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 10288.97,
+      "successful_rps": 10288.97,
+      "latency_percentiles_ms": {
+        "p95": 11.297,
+        "p99": 17.251
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18130/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18130/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     6.36ms    2.89ms  47.59ms   81.65%\n    Req/Sec     2.59k   119.28     2.88k    74.51%\n  Latency Distribution\n     50%    5.43ms\n     75%    5.70ms\n     90%   10.64ms\n     99%   17.25ms\n  52506 requests in 5.10s, 70.10MB read\nRequests/sec:  10288.97\nTransfer/sec:     13.74MB\nCUSTOM_P95_MS: 11.297\nCUSTOM_P99_MS: 17.251\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 2,
+      "variant": "Внедрение пула рабочих потоков (Execution Pool)",
+      "rps": 12287.08,
+      "successful_rps": 12287.08,
+      "latency_percentiles_ms": {
+        "p95": 6.593,
+        "p99": 11.197
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18131/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18131/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.26ms    1.42ms  60.64ms   95.32%\n    Req/Sec     3.09k   246.30     3.32k    90.20%\n  Latency Distribution\n     50%    4.99ms\n     75%    5.25ms\n     90%    5.64ms\n     99%   11.20ms\n  62710 requests in 5.10s, 83.73MB read\nRequests/sec:  12287.08\nTransfer/sec:     16.41MB\nCUSTOM_P95_MS: 6.593\nCUSTOM_P99_MS: 11.197\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 1,
+      "variant": "Внедрение пула рабочих потоков (Execution Pool)",
+      "rps": 12391.74,
+      "successful_rps": 12391.74,
+      "latency_percentiles_ms": {
+        "p95": 6.277,
+        "p99": 10.127
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18131/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18131/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.20ms    1.22ms  51.03ms   95.41%\n    Req/Sec     3.11k   163.32     3.32k    80.88%\n  Latency Distribution\n     50%    4.98ms\n     75%    5.22ms\n     90%    5.57ms\n     99%   10.13ms\n  63217 requests in 5.10s, 84.40MB read\nRequests/sec:  12391.74\nTransfer/sec:     16.54MB\nCUSTOM_P95_MS: 6.277\nCUSTOM_P99_MS: 10.127\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 10062.12,
+      "successful_rps": 10062.12,
+      "latency_percentiles_ms": {
+        "p95": 11.814,
+        "p99": 17.968
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18130/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18130/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     6.47ms    3.14ms  51.21ms   80.48%\n    Req/Sec     2.55k   241.02     3.95k    84.65%\n  Latency Distribution\n     50%    5.46ms\n     75%    5.74ms\n     90%   10.72ms\n     99%   17.97ms\n  51322 requests in 5.10s, 68.52MB read\nRequests/sec:  10062.12\nTransfer/sec:     13.43MB\nCUSTOM_P95_MS: 11.814\nCUSTOM_P99_MS: 17.968\n\n"
+    }
+  ],
+  "notes": [
+    "Order alternates between baseline-first and treatment-first by cycle.",
+    "p95/p99 are per-round wrk latency percentiles collected through the included Lua script; summary reports their median across rounds.",
+    "Both endpoints must use the same Django application, method, path and response body."
+  ]
+}

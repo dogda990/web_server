@@ -1,0 +1,816 @@
+{
+  "started_at_utc": "2026-09-29T19:23:23.133075+00:00",
+  "host": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "processor": "arm",
+    "logical_cpus": 8,
+    "ram_bytes": 8589934592,
+    "python": "3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]",
+    "django_version": "6.0.8",
+    "granian_version": "2.8.3",
+    "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01) (Homebrew)"
+  },
+  "profile": {
+    "id": "01_shared_listener_inheritance",
+    "title": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+    "method_under_test": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+    "comparison_scope": "Изолированное сравнение базовой конфигурации без пяти методов и конфигурации с единственным методом: Механизм наследования ресурсов (Shared Listener Inheritance).",
+    "request_script": "scripts/wrk_post_body.lua",
+    "request_contract": {
+      "method": "POST",
+      "path": "/post",
+      "content_type": "application/octet-stream",
+      "body_bytes": 1024,
+      "django_behavior": "Тестовое представление Django читает тело запроса и формирует JSON-ответ; записи в базу данных нет."
+    },
+    "variants": [
+      {
+        "label": "baseline-no-method",
+        "url": "http://127.0.0.1:18110/post",
+        "server": "kubstu WSGI baseline; 2 worker(s), no tested method enabled",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--workers",
+          "2",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "reuseport",
+          "--python-mode",
+          "inline",
+          "--bounded-python-queue",
+          "false",
+          "--compact-body-buffer",
+          "false",
+          "--port",
+          "18110"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      },
+      {
+        "label": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+        "url": "http://127.0.0.1:18111/post",
+        "server": "kubstu WSGI; baseline plus Механизм наследования ресурсов (Shared Listener Inheritance)",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--workers",
+          "2",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "shared",
+          "--python-mode",
+          "inline",
+          "--bounded-python-queue",
+          "false",
+          "--compact-body-buffer",
+          "false",
+          "--port",
+          "18111"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      }
+    ]
+  },
+  "load": {
+    "generator": "wrk",
+    "version": "wrk 4.2.0 [kqueue] Copyright (C) 2012 Will Glozer",
+    "cycles": 10,
+    "duration_seconds": 5,
+    "threads": 4,
+    "connections": 64,
+    "warmup_rounds_per_variant": 2,
+    "cooldown_seconds": 1.0
+  },
+  "summary": {
+    "baseline-no-method": {
+      "rounds": 10,
+      "mean_rps": 12352.521,
+      "mean_successful_rps": 12352.521,
+      "stdev_rps": 386.9320633292389,
+      "median_p95_ms": 9.463999999999999,
+      "median_p99_ms": 12.1475,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    },
+    "Механизм наследования ресурсов (Shared Listener Inheritance)": {
+      "rounds": 10,
+      "mean_rps": 19792.467,
+      "mean_successful_rps": 19792.467,
+      "stdev_rps": 531.7548993463892,
+      "median_p95_ms": 6.288,
+      "median_p99_ms": 7.582,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    }
+  },
+  "paired_comparison": {
+    "baseline": "baseline-no-method",
+    "treatment": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+    "paired_cycles": 10,
+    "rps": {
+      "mean_treatment_minus_baseline": 7439.946,
+      "sample_sd": 711.1137236007564,
+      "ci95_low": 6931.281228703711,
+      "ci95_high": 7948.6107712962885,
+      "relative_to_baseline_pct": 60.23018297236653
+    },
+    "successful_rps": {
+      "mean_treatment_minus_baseline": 7439.946,
+      "sample_sd": 711.1137236007564,
+      "ci95_low": 6931.281228703711,
+      "ci95_high": 7948.6107712962885,
+      "relative_to_baseline_pct": 60.23018297236653
+    },
+    "p95_treatment_minus_baseline_median_ms": -3.0540000000000007,
+    "p99_treatment_minus_baseline_median_ms": -4.6135
+  },
+  "rounds": [
+    {
+      "cycle": 1,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 12466.92,
+      "successful_rps": 12466.92,
+      "latency_percentiles_ms": {
+        "p95": 9.675,
+        "p99": 12.992
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18110/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18110/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.21ms    2.65ms  24.26ms   69.71%\n    Req/Sec     3.13k   163.94     3.42k    75.98%\n  Latency Distribution\n     50%    5.10ms\n     75%    6.63ms\n     90%    8.41ms\n     99%   12.99ms\n  63590 requests in 5.10s, 84.90MB read\nRequests/sec:  12466.92\nTransfer/sec:     16.65MB\nCUSTOM_P95_MS: 9.675\nCUSTOM_P99_MS: 12.992\n\n"
+    },
+    {
+      "cycle": 1,
+      "position": 2,
+      "variant": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "rps": 20238.0,
+      "successful_rps": 20238.0,
+      "latency_percentiles_ms": {
+        "p95": 5.076,
+        "p99": 6.113
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18111/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18111/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     3.13ms    1.19ms  15.37ms   71.68%\n    Req/Sec     5.14k   642.48    10.82k    93.07%\n  Latency Distribution\n     50%    3.12ms\n     75%    3.84ms\n     90%    4.58ms\n     99%    6.11ms\n  103214 requests in 5.10s, 137.81MB read\nRequests/sec:  20238.00\nTransfer/sec:     27.02MB\nCUSTOM_P95_MS: 5.076\nCUSTOM_P99_MS: 6.113\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 1,
+      "variant": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "rps": 20134.3,
+      "successful_rps": 20134.3,
+      "latency_percentiles_ms": {
+        "p95": 6.275,
+        "p99": 7.54
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18111/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18111/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     3.21ms    1.70ms  15.45ms   68.80%\n    Req/Sec     5.06k     0.92k    6.34k    57.35%\n  Latency Distribution\n     50%    2.88ms\n     75%    4.38ms\n     90%    5.58ms\n     99%    7.54ms\n  102696 requests in 5.10s, 137.11MB read\nRequests/sec:  20134.30\nTransfer/sec:     26.88MB\nCUSTOM_P95_MS: 6.275\nCUSTOM_P99_MS: 7.540\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 12697.85,
+      "successful_rps": 12697.85,
+      "latency_percentiles_ms": {
+        "p95": 9.345,
+        "p99": 12.037
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18110/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18110/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.09ms    2.48ms  24.09ms   68.55%\n    Req/Sec     3.19k   143.06     3.48k    88.24%\n  Latency Distribution\n     50%    5.01ms\n     75%    6.52ms\n     90%    8.21ms\n     99%   12.04ms\n  64770 requests in 5.10s, 86.48MB read\nRequests/sec:  12697.85\nTransfer/sec:     16.95MB\nCUSTOM_P95_MS: 9.345\nCUSTOM_P99_MS: 12.037\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 12506.35,
+      "successful_rps": 12506.35,
+      "latency_percentiles_ms": {
+        "p95": 9.329,
+        "p99": 11.977
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18110/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18110/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.14ms    2.46ms  20.39ms   69.01%\n    Req/Sec     3.16k   209.71     4.32k    87.68%\n  Latency Distribution\n     50%    5.09ms\n     75%    6.58ms\n     90%    8.15ms\n     99%   11.98ms\n  63785 requests in 5.10s, 85.16MB read\nRequests/sec:  12506.35\nTransfer/sec:     16.70MB\nCUSTOM_P95_MS: 9.329\nCUSTOM_P99_MS: 11.977\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 2,
+      "variant": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "rps": 20156.26,
+      "successful_rps": 20156.26,
+      "latency_percentiles_ms": {
+        "p95": 6.301,
+        "p99": 7.624
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18111/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18111/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     3.21ms    1.71ms  16.20ms   68.78%\n    Req/Sec     5.07k     0.99k    7.03k    68.63%\n  Latency Distribution\n     50%    2.87ms\n     75%    4.37ms\n     90%    5.58ms\n     99%    7.62ms\n  102807 requests in 5.10s, 137.26MB read\nRequests/sec:  20156.26\nTransfer/sec:     26.91MB\nCUSTOM_P95_MS: 6.301\nCUSTOM_P99_MS: 7.624\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 1,
+      "variant": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "rps": 18851.77,
+      "successful_rps": 18851.77,
+      "latency_percentiles_ms": {
+        "p95": 7.306,
+        "p99": 91.374
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18111/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18111/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.35ms   13.77ms 162.88ms   97.35%\n    Req/Sec     4.79k     0.91k    5.70k    91.00%\n  Latency Distribution\n     50%    3.12ms\n     75%    4.37ms\n     90%    5.88ms\n     99%   91.37ms\n  95267 requests in 5.05s, 127.20MB read\nRequests/sec:  18851.77\nTransfer/sec:     25.17MB\nCUSTOM_P95_MS: 7.306\nCUSTOM_P99_MS: 91.374\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 12560.78,
+      "successful_rps": 12560.78,
+      "latency_percentiles_ms": {
+        "p95": 9.453,
+        "p99": 12.258
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18110/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18110/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.14ms    2.51ms  20.07ms   68.27%\n    Req/Sec     3.16k   158.50     3.40k    87.25%\n  Latency Distribution\n     50%    5.10ms\n     75%    6.61ms\n     90%    8.26ms\n     99%   12.26ms\n  64066 requests in 5.10s, 85.54MB read\nRequests/sec:  12560.78\nTransfer/sec:     16.77MB\nCUSTOM_P95_MS: 9.453\nCUSTOM_P99_MS: 12.258\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 11315.7,
+      "successful_rps": 11315.7,
+      "latency_percentiles_ms": {
+        "p95": 11.107,
+        "p99": 104.514
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18110/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18110/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     7.75ms   15.12ms 164.05ms   97.31%\n    Req/Sec     2.86k   493.90     3.31k    93.50%\n  Latency Distribution\n     50%    5.57ms\n     75%    7.26ms\n     90%    9.19ms\n     99%  104.51ms\n  56853 requests in 5.02s, 75.91MB read\nRequests/sec:  11315.70\nTransfer/sec:     15.11MB\nCUSTOM_P95_MS: 11.107\nCUSTOM_P99_MS: 104.514\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 2,
+      "variant": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "rps": 20106.66,
+      "successful_rps": 20106.66,
+      "latency_percentiles_ms": {
+        "p95": 8.624,
+        "p99": 10.555
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18111/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18111/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     3.49ms    3.08ms  19.88ms   48.22%\n    Req/Sec     5.08k     2.69k   10.57k    73.89%\n  Latency Distribution\n     50%    3.64ms\n     75%    5.92ms\n     90%    7.68ms\n     99%   10.55ms\n  102547 requests in 5.10s, 136.92MB read\nRequests/sec:  20106.66\nTransfer/sec:     26.85MB\nCUSTOM_P95_MS: 8.624\nCUSTOM_P99_MS: 10.555\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 1,
+      "variant": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "rps": 20439.29,
+      "successful_rps": 20439.29,
+      "latency_percentiles_ms": {
+        "p95": 5.46,
+        "p99": 6.563
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18111/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18111/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     3.14ms    1.30ms  13.52ms   71.00%\n    Req/Sec     5.14k   399.25     5.86k    69.61%\n  Latency Distribution\n     50%    3.02ms\n     75%    3.93ms\n     90%    4.84ms\n     99%    6.56ms\n  104256 requests in 5.10s, 139.20MB read\nRequests/sec:  20439.29\nTransfer/sec:     27.29MB\nCUSTOM_P95_MS: 5.460\nCUSTOM_P99_MS: 6.563\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 12352.74,
+      "successful_rps": 12352.74,
+      "latency_percentiles_ms": {
+        "p95": 9.506,
+        "p99": 12.284
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18110/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18110/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.23ms    2.53ms  27.53ms   68.29%\n    Req/Sec     3.10k   204.17     3.41k    80.39%\n  Latency Distribution\n     50%    5.17ms\n     75%    6.67ms\n     90%    8.42ms\n     99%   12.28ms\n  63015 requests in 5.10s, 84.13MB read\nRequests/sec:  12352.74\nTransfer/sec:     16.49MB\nCUSTOM_P95_MS: 9.506\nCUSTOM_P99_MS: 12.284\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 12537.48,
+      "successful_rps": 12537.48,
+      "latency_percentiles_ms": {
+        "p95": 9.175,
+        "p99": 11.453
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18110/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18110/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.14ms    2.40ms  20.70ms   68.29%\n    Req/Sec     3.15k   159.57     3.39k    82.35%\n  Latency Distribution\n     50%    5.10ms\n     75%    6.59ms\n     90%    8.11ms\n     99%   11.45ms\n  63962 requests in 5.10s, 85.40MB read\nRequests/sec:  12537.48\nTransfer/sec:     16.74MB\nCUSTOM_P95_MS: 9.175\nCUSTOM_P99_MS: 11.453\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 2,
+      "variant": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "rps": 19943.91,
+      "successful_rps": 19943.91,
+      "latency_percentiles_ms": {
+        "p95": 6.137,
+        "p99": 7.428
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18111/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18111/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     3.23ms    1.62ms  15.82ms   69.06%\n    Req/Sec     5.01k   396.60     5.64k    78.92%\n  Latency Distribution\n     50%    2.96ms\n     75%    4.31ms\n     90%    5.46ms\n     99%    7.43ms\n  101730 requests in 5.10s, 135.82MB read\nRequests/sec:  19943.91\nTransfer/sec:     26.63MB\nCUSTOM_P95_MS: 6.137\nCUSTOM_P99_MS: 7.428\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 1,
+      "variant": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "rps": 19333.65,
+      "successful_rps": 19333.65,
+      "latency_percentiles_ms": {
+        "p95": 5.755,
+        "p99": 7.17
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18111/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18111/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     3.32ms    1.41ms  14.83ms   71.92%\n    Req/Sec     4.86k   731.68     6.54k    69.12%\n  Latency Distribution\n     50%    3.20ms\n     75%    4.16ms\n     90%    5.12ms\n     99%    7.17ms\n  98621 requests in 5.10s, 131.67MB read\nRequests/sec:  19333.65\nTransfer/sec:     25.81MB\nCUSTOM_P95_MS: 5.755\nCUSTOM_P99_MS: 7.170\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 12464.69,
+      "successful_rps": 12464.69,
+      "latency_percentiles_ms": {
+        "p95": 9.365,
+        "p99": 11.9
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18110/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18110/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.17ms    2.46ms  21.80ms   68.22%\n    Req/Sec     3.13k   178.23     3.45k    85.29%\n  Latency Distribution\n     50%    5.15ms\n     75%    6.63ms\n     90%    8.28ms\n     99%   11.90ms\n  63595 requests in 5.10s, 84.91MB read\nRequests/sec:  12464.69\nTransfer/sec:     16.64MB\nCUSTOM_P95_MS: 9.365\nCUSTOM_P99_MS: 11.900\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 12204.36,
+      "successful_rps": 12204.36,
+      "latency_percentiles_ms": {
+        "p95": 9.729,
+        "p99": 13.501
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18110/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18110/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.32ms    2.71ms  28.91ms   70.16%\n    Req/Sec     3.07k   296.01     3.45k    85.29%\n  Latency Distribution\n     50%    5.21ms\n     75%    6.78ms\n     90%    8.57ms\n     99%   13.50ms\n  62268 requests in 5.10s, 83.14MB read\nRequests/sec:  12204.36\nTransfer/sec:     16.29MB\nCUSTOM_P95_MS: 9.729\nCUSTOM_P99_MS: 13.501\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 2,
+      "variant": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "rps": 19570.63,
+      "successful_rps": 19570.63,
+      "latency_percentiles_ms": {
+        "p95": 6.588,
+        "p99": 7.937
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18111/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18111/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     3.31ms    1.81ms  16.52ms   68.77%\n    Req/Sec     4.92k   615.57     6.12k    62.75%\n  Latency Distribution\n     50%    2.94ms\n     75%    4.56ms\n     90%    5.87ms\n     99%    7.94ms\n  99825 requests in 5.10s, 133.28MB read\nRequests/sec:  19570.63\nTransfer/sec:     26.13MB\nCUSTOM_P95_MS: 6.588\nCUSTOM_P99_MS: 7.937\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 1,
+      "variant": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "rps": 19150.2,
+      "successful_rps": 19150.2,
+      "latency_percentiles_ms": {
+        "p95": 8.36,
+        "p99": 10.044
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18111/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18111/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     3.55ms    2.75ms  20.38ms   66.85%\n    Req/Sec     4.81k     3.06k   11.02k    75.49%\n  Latency Distribution\n     50%    3.50ms\n     75%    5.68ms\n     90%    7.41ms\n     99%   10.04ms\n  97685 requests in 5.10s, 130.42MB read\nRequests/sec:  19150.20\nTransfer/sec:     25.57MB\nCUSTOM_P95_MS: 8.360\nCUSTOM_P99_MS: 10.044\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 12418.34,
+      "successful_rps": 12418.34,
+      "latency_percentiles_ms": {
+        "p95": 9.475,
+        "p99": 11.947
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "64",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_post_body.lua",
+        "http://127.0.0.1:18110/post"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18110/post\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency     5.19ms    2.47ms  19.58ms   68.69%\n    Req/Sec     3.12k   180.57     3.48k    81.86%\n  Latency Distribution\n     50%    5.14ms\n     75%    6.66ms\n     90%    8.28ms\n     99%   11.95ms\n  63348 requests in 5.10s, 84.58MB read\nRequests/sec:  12418.34\nTransfer/sec:     16.58MB\nCUSTOM_P95_MS: 9.475\nCUSTOM_P99_MS: 11.947\n\n"
+    }
+  ],
+  "notes": [
+    "Order alternates between baseline-first and treatment-first by cycle.",
+    "p95/p99 are per-round wrk latency percentiles collected through the included Lua script; summary reports their median across rounds.",
+    "Both endpoints must use the same Django application, method, path and response body."
+  ]
+}

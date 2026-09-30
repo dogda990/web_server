@@ -1,0 +1,90 @@
+{
+  "id": "05_runtime_isolation",
+  "title": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+  "method_under_test": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+  "comparison_scope": "Изолированное сравнение базовой конфигурации без пяти методов и конфигурации с единственным методом: Изоляция сетевой среды выполнения (Runtime Isolation).",
+  "request_script": "scripts/wrk_mixed_sleep.lua",
+  "request_contract": {
+    "distribution": "70% GET /rps_plain; 30% GET /rps_heavy",
+    "heavy_delay_ms": 25,
+    "django_behavior": "Both views return a short text body; only the heavy view sleeps."
+  },
+  "variants": [
+    {
+      "label": "baseline-no-method",
+      "url": "http://127.0.0.1:18150/post",
+      "server": "kubstu WSGI baseline; 2 worker(s), no tested method enabled",
+      "command": [
+        "./target/release/kubstu_web_server",
+        "--interface",
+        "wsgi",
+        "config.wsgi:application",
+        "--working-dir",
+        "./django_test_app",
+        "--host",
+        "127.0.0.1",
+        "--workers",
+        "2",
+        "--runtime-threads",
+        "2",
+        "--python-threads",
+        "2",
+        "--python-queue-capacity",
+        "256",
+        "--listener-mode",
+        "reuseport",
+        "--python-mode",
+        "inline",
+        "--bounded-python-queue",
+        "false",
+        "--compact-body-buffer",
+        "false",
+        "--port",
+        "18150"
+      ],
+      "cwd": ".",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+        "VIRTUAL_ENV": ".venv"
+      }
+    },
+    {
+      "label": "Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "url": "http://127.0.0.1:18151/post",
+      "server": "kubstu WSGI; baseline plus Изоляция сетевой среды выполнения (Runtime Isolation)",
+      "command": [
+        "./target/release/kubstu_web_server",
+        "--interface",
+        "wsgi",
+        "config.wsgi:application",
+        "--working-dir",
+        "./django_test_app",
+        "--host",
+        "127.0.0.1",
+        "--workers",
+        "2",
+        "--runtime-threads",
+        "2",
+        "--python-threads",
+        "2",
+        "--python-queue-capacity",
+        "256",
+        "--listener-mode",
+        "reuseport",
+        "--python-mode",
+        "blocking",
+        "--bounded-python-queue",
+        "false",
+        "--compact-body-buffer",
+        "false",
+        "--port",
+        "18151"
+      ],
+      "cwd": ".",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+        "VIRTUAL_ENV": ".venv"
+      }
+    }
+  ]
+}

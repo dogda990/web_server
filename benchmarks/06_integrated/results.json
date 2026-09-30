@@ -1,0 +1,1320 @@
+{
+  "started_at_utc": "2026-09-30T10:08:18.636961+00:00",
+  "host": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "processor": "arm",
+    "logical_cpus": 8,
+    "ram_bytes": 8589934592,
+    "python": "3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]",
+    "django_version": "6.0.8",
+    "granian_version": "2.8.3",
+    "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01) (Homebrew)"
+  },
+  "profile": {
+    "id": "06_integrated",
+    "title": "Интеграция всех методов",
+    "comparison_scope": "Все пять методов kubstu против Granian WSGI. Настройки Granian — лучший исследованный в проекте профиль, а не доказанный универсальный оптимум.",
+    "variants": [
+      {
+        "label": "kubstu-integrated",
+        "url": "http://127.0.0.1:18081/rps_plain",
+        "server": "Rust kubstu WSGI; 2 workers, 2 Tokio threads/worker, 2 Python threads/worker, queue 256",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--port",
+          "18081",
+          "--workers",
+          "2",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "shared",
+          "--python-mode",
+          "pool",
+          "--bounded-python-queue",
+          "true",
+          "--compact-body-buffer",
+          "true",
+          "--max-body-bytes",
+          "12582912"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      },
+      {
+        "label": "granian",
+        "url": "http://127.0.0.1:18082/rps_plain",
+        "server": "Granian 2.8.3 WSGI; HTTP/1, 2 workers, 2 runtime threads, 2 blocking threads",
+        "command": [
+          ".venv/bin/granian",
+          "--interface",
+          "wsgi",
+          "--http",
+          "1",
+          "--host",
+          "127.0.0.1",
+          "--port",
+          "18082",
+          "--workers",
+          "2",
+          "--runtime-threads",
+          "2",
+          "--blocking-threads",
+          "2",
+          "--working-dir",
+          "./django_test_app",
+          "config.wsgi:application"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      }
+    ],
+    "request_script": "scripts/wrk_integrated_mixed.lua",
+    "request_contract": {
+      "distribution": "70% GET /rps_plain; 20% GET /rps_heavy; 10% POST /rps_heavy with a 10 MiB body",
+      "heavy_delay_ms": 25,
+      "max_body_bytes": 12582912,
+      "django_behavior": "Heavy GETs sleep 25 ms. Large POSTs are read fully and then sleep 25 ms; every response body is short."
+    }
+  },
+  "load": {
+    "generator": "wrk",
+    "version": "wrk 4.2.0 [kqueue] Copyright (C) 2012 Will Glozer",
+    "cycles": 10,
+    "duration_seconds": 5,
+    "threads": 4,
+    "connections": 16,
+    "warmup_rounds_per_variant": 2,
+    "cooldown_seconds": 1.0
+  },
+  "summary": {
+    "kubstu-integrated": {
+      "rounds": 10,
+      "mean_rps": 453.928,
+      "mean_successful_rps": 453.928,
+      "stdev_rps": 1.576887229110986,
+      "median_p95_ms": 83.0645,
+      "median_p99_ms": 96.04050000000001,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    },
+    "granian": {
+      "rounds": 10,
+      "mean_rps": 434.708,
+      "mean_successful_rps": 434.708,
+      "stdev_rps": 2.0019146390948386,
+      "median_p95_ms": 86.8445,
+      "median_p99_ms": 101.401,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    }
+  },
+  "paired_comparison": {
+    "baseline": "kubstu-integrated",
+    "treatment": "granian",
+    "paired_cycles": 10,
+    "rps": {
+      "mean_treatment_minus_baseline": -19.21999999999999,
+      "sample_sd": 1.9001695830752787,
+      "ci95_low": -20.579204996783044,
+      "ci95_high": -17.86079500321694,
+      "relative_to_baseline_pct": -4.234151671630741
+    },
+    "successful_rps": {
+      "mean_treatment_minus_baseline": -19.21999999999999,
+      "sample_sd": 1.9001695830752787,
+      "ci95_low": -20.579204996783044,
+      "ci95_high": -17.86079500321694,
+      "relative_to_baseline_pct": -4.234151671630741
+    },
+    "p95_treatment_minus_baseline_median_ms": 4.448500000000003,
+    "p99_treatment_minus_baseline_median_ms": 8.303999999999995
+  },
+  "rounds": [
+    {
+      "cycle": 1,
+      "position": 1,
+      "variant": "kubstu-integrated",
+      "rps": 454.64,
+      "successful_rps": 454.64,
+      "latency_percentiles_ms": {
+        "p95": 74.978,
+        "p99": 88.17
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18081/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18081/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    35.53ms   21.74ms 123.74ms   64.95%\n    Req/Sec   114.08     19.20   180.00     75.00%\n  Latency Distribution\n     50%   31.02ms\n     75%   53.34ms\n     90%   60.65ms\n     99%   88.17ms\n  2293 requests in 5.04s, 309.28KB read\nRequests/sec:    454.64\nTransfer/sec:     61.32KB\nCUSTOM_P95_MS: 74.978\nCUSTOM_P99_MS: 88.170\n\n"
+    },
+    {
+      "cycle": 1,
+      "position": 2,
+      "variant": "granian",
+      "rps": 435.56,
+      "successful_rps": 435.56,
+      "latency_percentiles_ms": {
+        "p95": 85.359,
+        "p99": 101.314
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18082/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18082/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    37.58ms   25.62ms 128.48ms   65.21%\n    Req/Sec   109.14     25.65   188.00     73.50%\n  Latency Distribution\n     50%   33.29ms\n     75%   56.56ms\n     90%   68.61ms\n     99%  101.31ms\n  2191 requests in 5.03s, 314.83KB read\nRequests/sec:    435.56\nTransfer/sec:     62.59KB\nCUSTOM_P95_MS: 85.359\nCUSTOM_P99_MS: 101.314\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 1,
+      "variant": "granian",
+      "rps": 434.78,
+      "successful_rps": 434.78,
+      "latency_percentiles_ms": {
+        "p95": 86.967,
+        "p99": 97.949
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18082/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18082/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    37.78ms   26.79ms 124.75ms   63.50%\n    Req/Sec   109.09     23.51   190.00     79.50%\n  Latency Distribution\n     50%   33.77ms\n     75%   58.02ms\n     90%   69.92ms\n     99%   97.95ms\n  2188 requests in 5.03s, 314.37KB read\nRequests/sec:    434.78\nTransfer/sec:     62.47KB\nCUSTOM_P95_MS: 86.967\nCUSTOM_P99_MS: 97.949\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 2,
+      "variant": "kubstu-integrated",
+      "rps": 454.95,
+      "successful_rps": 454.95,
+      "latency_percentiles_ms": {
+        "p95": 82.222,
+        "p99": 90.937
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18081/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18081/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    35.80ms   24.61ms 112.75ms   63.80%\n    Req/Sec   114.17     26.87   210.00     75.50%\n  Latency Distribution\n     50%   31.75ms\n     75%   55.08ms\n     90%   63.49ms\n     99%   90.94ms\n  2293 requests in 5.04s, 309.22KB read\nRequests/sec:    454.95\nTransfer/sec:     61.35KB\nCUSTOM_P95_MS: 82.222\nCUSTOM_P99_MS: 90.937\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 1,
+      "variant": "kubstu-integrated",
+      "rps": 453.55,
+      "successful_rps": 453.55,
+      "latency_percentiles_ms": {
+        "p95": 89.673,
+        "p99": 115.102
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18081/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18081/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    37.48ms   30.28ms 144.26ms   57.33%\n    Req/Sec   113.81     27.26   207.00     80.00%\n  Latency Distribution\n     50%   32.70ms\n     75%   57.74ms\n     90%   81.48ms\n     99%  115.10ms\n  2282 requests in 5.03s, 307.80KB read\nRequests/sec:    453.55\nTransfer/sec:     61.18KB\nCUSTOM_P95_MS: 89.673\nCUSTOM_P99_MS: 115.102\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 2,
+      "variant": "granian",
+      "rps": 437.55,
+      "successful_rps": 437.55,
+      "latency_percentiles_ms": {
+        "p95": 86.056,
+        "p99": 96.8
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18082/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18082/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    37.50ms   25.84ms 132.80ms   64.96%\n    Req/Sec   109.73     25.43   190.00     70.50%\n  Latency Distribution\n     50%   34.69ms\n     75%   56.40ms\n     90%   70.26ms\n     99%   96.80ms\n  2199 requests in 5.03s, 315.92KB read\nRequests/sec:    437.55\nTransfer/sec:     62.86KB\nCUSTOM_P95_MS: 86.056\nCUSTOM_P99_MS: 96.800\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 1,
+      "variant": "granian",
+      "rps": 436.86,
+      "successful_rps": 436.86,
+      "latency_percentiles_ms": {
+        "p95": 92.622,
+        "p99": 116.086
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18082/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18082/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    38.70ms   29.65ms 152.78ms   64.19%\n    Req/Sec   109.47     40.12   247.00     70.50%\n  Latency Distribution\n     50%   34.82ms\n     75%   59.11ms\n     90%   79.56ms\n     99%  116.09ms\n  2196 requests in 5.03s, 315.80KB read\nRequests/sec:    436.86\nTransfer/sec:     62.82KB\nCUSTOM_P95_MS: 92.622\nCUSTOM_P99_MS: 116.086\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 2,
+      "variant": "kubstu-integrated",
+      "rps": 453.65,
+      "successful_rps": 453.65,
+      "latency_percentiles_ms": {
+        "p95": 83.559,
+        "p99": 100.228
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18081/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18081/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    36.09ms   25.24ms 140.35ms   65.71%\n    Req/Sec   113.67     23.99   210.00     72.00%\n  Latency Distribution\n     50%   31.75ms\n     75%   54.98ms\n     90%   65.51ms\n     99%  100.23ms\n  2284 requests in 5.03s, 308.07KB read\nRequests/sec:    453.65\nTransfer/sec:     61.19KB\nCUSTOM_P95_MS: 83.559\nCUSTOM_P99_MS: 100.228\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 1,
+      "variant": "kubstu-integrated",
+      "rps": 453.0,
+      "successful_rps": 453.0,
+      "latency_percentiles_ms": {
+        "p95": 81.812,
+        "p99": 94.638
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18081/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18081/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    36.01ms   24.03ms 116.57ms   65.54%\n    Req/Sec   113.75     24.42   171.00     69.50%\n  Latency Distribution\n     50%   31.47ms\n     75%   54.41ms\n     90%   63.03ms\n     99%   94.64ms\n  2282 requests in 5.04s, 307.77KB read\nRequests/sec:    453.00\nTransfer/sec:     61.09KB\nCUSTOM_P95_MS: 81.812\nCUSTOM_P99_MS: 94.638\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 2,
+      "variant": "granian",
+      "rps": 433.15,
+      "successful_rps": 433.15,
+      "latency_percentiles_ms": {
+        "p95": 103.124,
+        "p99": 128.429
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18082/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18082/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    40.40ms   33.85ms 163.67ms   58.59%\n    Req/Sec   108.71     51.59   282.00     70.00%\n  Latency Distribution\n     50%   34.82ms\n     75%   61.47ms\n     90%   88.61ms\n     99%  128.43ms\n  2180 requests in 5.03s, 313.21KB read\nRequests/sec:    433.15\nTransfer/sec:     62.23KB\nCUSTOM_P95_MS: 103.124\nCUSTOM_P99_MS: 128.429\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 1,
+      "variant": "granian",
+      "rps": 435.63,
+      "successful_rps": 435.63,
+      "latency_percentiles_ms": {
+        "p95": 85.723,
+        "p99": 101.488
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18082/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18082/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    37.49ms   26.12ms 133.62ms   64.41%\n    Req/Sec   109.41     30.05   180.00     73.00%\n  Latency Distribution\n     50%   33.90ms\n     75%   56.72ms\n     90%   68.77ms\n     99%  101.49ms\n  2196 requests in 5.04s, 315.53KB read\nRequests/sec:    435.63\nTransfer/sec:     62.59KB\nCUSTOM_P95_MS: 85.723\nCUSTOM_P99_MS: 101.488\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 2,
+      "variant": "kubstu-integrated",
+      "rps": 457.63,
+      "successful_rps": 457.63,
+      "latency_percentiles_ms": {
+        "p95": 82.205,
+        "p99": 93.212
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18081/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18081/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    35.76ms   24.85ms 116.89ms   63.96%\n    Req/Sec   114.78     23.09   240.00     70.50%\n  Latency Distribution\n     50%   31.68ms\n     75%   54.49ms\n     90%   64.67ms\n     99%   93.21ms\n  2304 requests in 5.03s, 310.80KB read\nRequests/sec:    457.63\nTransfer/sec:     61.73KB\nCUSTOM_P95_MS: 82.205\nCUSTOM_P99_MS: 93.212\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 1,
+      "variant": "kubstu-integrated",
+      "rps": 453.66,
+      "successful_rps": 453.66,
+      "latency_percentiles_ms": {
+        "p95": 85.3,
+        "p99": 106.955
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18081/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18081/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    36.50ms   26.67ms 146.28ms   64.70%\n    Req/Sec   113.89     39.50   232.00     73.50%\n  Latency Distribution\n     50%   32.19ms\n     75%   56.08ms\n     90%   69.73ms\n     99%  106.95ms\n  2284 requests in 5.03s, 308.03KB read\nRequests/sec:    453.66\nTransfer/sec:     61.18KB\nCUSTOM_P95_MS: 85.300\nCUSTOM_P99_MS: 106.955\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 2,
+      "variant": "granian",
+      "rps": 434.74,
+      "successful_rps": 434.74,
+      "latency_percentiles_ms": {
+        "p95": 85.875,
+        "p99": 100.339
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18082/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18082/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    37.73ms   26.18ms 134.02ms   64.20%\n    Req/Sec   108.91     23.60   181.00     73.50%\n  Latency Distribution\n     50%   34.37ms\n     75%   57.35ms\n     90%   69.63ms\n     99%  100.34ms\n  2185 requests in 5.03s, 313.88KB read\nRequests/sec:    434.74\nTransfer/sec:     62.45KB\nCUSTOM_P95_MS: 85.875\nCUSTOM_P99_MS: 100.339\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 1,
+      "variant": "granian",
+      "rps": 435.04,
+      "successful_rps": 435.04,
+      "latency_percentiles_ms": {
+        "p95": 86.722,
+        "p99": 98.958
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18082/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18082/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    37.55ms   26.22ms 125.95ms   63.69%\n    Req/Sec   109.20     24.46   200.00     76.50%\n  Latency Distribution\n     50%   34.32ms\n     75%   57.56ms\n     90%   69.11ms\n     99%   98.96ms\n  2190 requests in 5.03s, 314.69KB read\nRequests/sec:    435.04\nTransfer/sec:     62.51KB\nCUSTOM_P95_MS: 86.722\nCUSTOM_P99_MS: 98.958\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 2,
+      "variant": "kubstu-integrated",
+      "rps": 453.77,
+      "successful_rps": 453.77,
+      "latency_percentiles_ms": {
+        "p95": 82.57,
+        "p99": 90.626
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18081/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18081/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    36.03ms   24.13ms 119.71ms   65.36%\n    Req/Sec   113.78     23.44   198.00     68.00%\n  Latency Distribution\n     50%   31.42ms\n     75%   54.52ms\n     90%   63.46ms\n     99%   90.63ms\n  2285 requests in 5.04s, 308.20KB read\nRequests/sec:    453.77\nTransfer/sec:     61.20KB\nCUSTOM_P95_MS: 82.570\nCUSTOM_P99_MS: 90.626\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 1,
+      "variant": "kubstu-integrated",
+      "rps": 452.41,
+      "successful_rps": 452.41,
+      "latency_percentiles_ms": {
+        "p95": 83.744,
+        "p99": 97.443
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18081/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18081/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    36.27ms   24.98ms 142.63ms   65.71%\n    Req/Sec   113.42     28.97   202.00     72.50%\n  Latency Distribution\n     50%   31.63ms\n     75%   55.14ms\n     90%   65.13ms\n     99%   97.44ms\n  2275 requests in 5.03s, 306.88KB read\nRequests/sec:    452.41\nTransfer/sec:     61.03KB\nCUSTOM_P95_MS: 83.744\nCUSTOM_P99_MS: 97.443\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 2,
+      "variant": "granian",
+      "rps": 430.6,
+      "successful_rps": 430.6,
+      "latency_percentiles_ms": {
+        "p95": 98.133,
+        "p99": 125.524
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18082/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18082/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    40.05ms   33.09ms 160.34ms   59.47%\n    Req/Sec   107.88     27.99   181.00     71.50%\n  Latency Distribution\n     50%   34.99ms\n     75%   61.43ms\n     90%   88.46ms\n     99%  125.52ms\n  2166 requests in 5.03s, 311.14KB read\nRequests/sec:    430.60\nTransfer/sec:     61.86KB\nCUSTOM_P95_MS: 98.133\nCUSTOM_P99_MS: 125.524\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 1,
+      "variant": "granian",
+      "rps": 433.17,
+      "successful_rps": 433.17,
+      "latency_percentiles_ms": {
+        "p95": 94.557,
+        "p99": 119.306
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18082/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18082/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    38.95ms   30.26ms 148.93ms   63.45%\n    Req/Sec   108.74     34.70   210.00     69.00%\n  Latency Distribution\n     50%   34.33ms\n     75%   59.37ms\n     90%   81.32ms\n     99%  119.31ms\n  2180 requests in 5.03s, 313.33KB read\nRequests/sec:    433.17\nTransfer/sec:     62.26KB\nCUSTOM_P95_MS: 94.557\nCUSTOM_P99_MS: 119.306\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 2,
+      "variant": "kubstu-integrated",
+      "rps": 452.02,
+      "successful_rps": 452.02,
+      "latency_percentiles_ms": {
+        "p95": 90.932,
+        "p99": 117.041
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_integrated_mixed.lua",
+        "http://127.0.0.1:18081/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18081/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    37.89ms   31.04ms 148.47ms   57.93%\n    Req/Sec   113.54     30.41   247.00     73.50%\n  Latency Distribution\n     50%   32.16ms\n     75%   58.27ms\n     90%   83.53ms\n     99%  117.04ms\n  2278 requests in 5.04s, 307.23KB read\nRequests/sec:    452.02\nTransfer/sec:     60.96KB\nCUSTOM_P95_MS: 90.932\nCUSTOM_P99_MS: 117.041\n\n"
+    }
+  ],
+  "notes": [
+    "Order alternates between baseline-first and treatment-first by cycle.",
+    "p95/p99 are per-round wrk latency percentiles collected through the included Lua script; summary reports their median across rounds.",
+    "Both endpoints must use the same Django application, method, path and response body."
+  ],
+  "startup_measurement": {
+    "definition": "process launch to first successful HTTP 2xx response from /rps_plain",
+    "started_at_utc": "2026-09-30T10:08:41.492873+00:00",
+    "runs_per_variant": 40,
+    "order": "alternating baseline-first and treatment-first by cycle",
+    "timeout_seconds": 30,
+    "summary": {
+      "kubstu-integrated": {
+        "runs": 40,
+        "mean_ms": 152.22270104568452,
+        "median_ms": 149.1847915458493,
+        "stdev_ms": 21.435659519740405,
+        "min_ms": 138.85175005998462,
+        "max_ms": 280.835457961075
+      },
+      "granian": {
+        "runs": 40,
+        "mean_ms": 282.33564170077443,
+        "median_ms": 278.5938334418461,
+        "stdev_ms": 14.170712227329599,
+        "min_ms": 267.4990000668913,
+        "max_ms": 353.73658302705735
+      }
+    },
+    "paired_comparison": {
+      "treatment_minus_baseline_median_ms": 131.22050056699663,
+      "treatment_minus_baseline_stdev_ms": 11.757759018759904,
+      "paired_cycles": 40
+    },
+    "measurements": [
+      {
+        "cycle": 1,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.280835457961075
+      },
+      {
+        "cycle": 1,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.35373658302705735
+      },
+      {
+        "cycle": 2,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2843989999964833
+      },
+      {
+        "cycle": 2,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15094083291478455
+      },
+      {
+        "cycle": 3,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14524774998426437
+      },
+      {
+        "cycle": 3,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.27042770897969604
+      },
+      {
+        "cycle": 4,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.27867729193530977
+      },
+      {
+        "cycle": 4,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15359545801766217
+      },
+      {
+        "cycle": 5,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.1588656249223277
+      },
+      {
+        "cycle": 5,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.2822601250372827
+      },
+      {
+        "cycle": 6,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.28119120793417096
+      },
+      {
+        "cycle": 6,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15328524995129555
+      },
+      {
+        "cycle": 7,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14332075009588152
+      },
+      {
+        "cycle": 7,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.27710433304309845
+      },
+      {
+        "cycle": 8,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.3032169579528272
+      },
+      {
+        "cycle": 8,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.1535397080006078
+      },
+      {
+        "cycle": 9,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15491333394311368
+      },
+      {
+        "cycle": 9,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.30024695897009224
+      },
+      {
+        "cycle": 10,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.30111162504181266
+      },
+      {
+        "cycle": 10,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15336137497797608
+      },
+      {
+        "cycle": 11,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.1533350000390783
+      },
+      {
+        "cycle": 11,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.2843087500659749
+      },
+      {
+        "cycle": 12,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2890062090009451
+      },
+      {
+        "cycle": 12,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14890841708984226
+      },
+      {
+        "cycle": 13,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.1441439170157537
+      },
+      {
+        "cycle": 13,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.27792091690935194
+      },
+      {
+        "cycle": 14,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.29667412501294166
+      },
+      {
+        "cycle": 14,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15275129198562354
+      },
+      {
+        "cycle": 15,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15068879106547683
+      },
+      {
+        "cycle": 15,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.27658237505238503
+      },
+      {
+        "cycle": 16,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2804738749982789
+      },
+      {
+        "cycle": 16,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15353949996642768
+      },
+      {
+        "cycle": 17,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.1436791659798473
+      },
+      {
+        "cycle": 17,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.275146417086944
+      },
+      {
+        "cycle": 18,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2868474170099944
+      },
+      {
+        "cycle": 18,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.1531391249736771
+      },
+      {
+        "cycle": 19,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.1460393340094015
+      },
+      {
+        "cycle": 19,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.2832549999002367
+      },
+      {
+        "cycle": 20,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2801558750215918
+      },
+      {
+        "cycle": 20,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15190437494311482
+      },
+      {
+        "cycle": 21,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14580337493680418
+      },
+      {
+        "cycle": 21,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.27737316593993455
+      },
+      {
+        "cycle": 22,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2674990000668913
+      },
+      {
+        "cycle": 22,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.145367959048599
+      },
+      {
+        "cycle": 23,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14847162493970245
+      },
+      {
+        "cycle": 23,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.27671774988994
+      },
+      {
+        "cycle": 24,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.27395933400839567
+      },
+      {
+        "cycle": 24,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14757595804985613
+      },
+      {
+        "cycle": 25,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.1494791250443086
+      },
+      {
+        "cycle": 25,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.2775309160351753
+      },
+      {
+        "cycle": 26,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.283234458998777
+      },
+      {
+        "cycle": 26,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15138920792378485
+      },
+      {
+        "cycle": 27,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14175895904190838
+      },
+      {
+        "cycle": 27,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.2779204159742221
+      },
+      {
+        "cycle": 28,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2809488750062883
+      },
+      {
+        "cycle": 28,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14946116600185633
+      },
+      {
+        "cycle": 29,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14723333402071148
+      },
+      {
+        "cycle": 29,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.2722813340369612
+      },
+      {
+        "cycle": 30,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2836239170283079
+      },
+      {
+        "cycle": 30,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14385608304291964
+      },
+      {
+        "cycle": 31,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.13885175005998462
+      },
+      {
+        "cycle": 31,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.2695229999953881
+      },
+      {
+        "cycle": 32,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2823365000076592
+      },
+      {
+        "cycle": 32,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14568691700696945
+      },
+      {
+        "cycle": 33,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14107825001701713
+      },
+      {
+        "cycle": 33,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.2779009580845013
+      },
+      {
+        "cycle": 34,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2785103749483824
+      },
+      {
+        "cycle": 34,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.1570520829409361
+      },
+      {
+        "cycle": 35,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14421100006438792
+      },
+      {
+        "cycle": 35,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.2715855410788208
+      },
+      {
+        "cycle": 36,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.27875666704494506
+      },
+      {
+        "cycle": 36,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14669279102236032
+      },
+      {
+        "cycle": 37,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14257245894987136
+      },
+      {
+        "cycle": 37,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.2768137080129236
+      },
+      {
+        "cycle": 38,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.2763200419722125
+      },
+      {
+        "cycle": 38,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15984949993435293
+      },
+      {
+        "cycle": 39,
+        "position": 1,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.14638112497050315
+      },
+      {
+        "cycle": 39,
+        "position": 2,
+        "variant": "granian",
+        "startup_seconds": 0.27086562500335276
+      },
+      {
+        "cycle": 40,
+        "position": 1,
+        "variant": "granian",
+        "startup_seconds": 0.276981332921423
+      },
+      {
+        "cycle": 40,
+        "position": 2,
+        "variant": "kubstu-integrated",
+        "startup_seconds": 0.15010091697331518
+      }
+    ]
+  }
+}

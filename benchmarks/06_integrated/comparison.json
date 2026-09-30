@@ -1,0 +1,84 @@
+{
+  "id": "06_integrated",
+  "title": "Интеграция всех методов",
+  "comparison_scope": "Все пять методов kubstu против Granian WSGI. Настройки Granian — лучший исследованный в проекте профиль, а не доказанный универсальный оптимум.",
+  "variants": [
+    {
+      "label": "kubstu-integrated",
+      "url": "http://127.0.0.1:18081/rps_plain",
+      "server": "Rust kubstu WSGI; 2 workers, 2 Tokio threads/worker, 2 Python threads/worker, queue 256",
+      "command": [
+        "./target/release/kubstu_web_server",
+        "--interface",
+        "wsgi",
+        "config.wsgi:application",
+        "--working-dir",
+        "./django_test_app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18081",
+        "--workers",
+        "2",
+        "--runtime-threads",
+        "2",
+        "--python-threads",
+        "2",
+        "--python-queue-capacity",
+        "256",
+        "--listener-mode",
+        "shared",
+        "--python-mode",
+        "pool",
+        "--bounded-python-queue",
+        "true",
+        "--compact-body-buffer",
+        "true",
+        "--max-body-bytes",
+        "12582912"
+      ],
+      "cwd": ".",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+        "VIRTUAL_ENV": ".venv"
+      }
+    },
+    {
+      "label": "granian",
+      "url": "http://127.0.0.1:18082/rps_plain",
+      "server": "Granian 2.8.3 WSGI; HTTP/1, 2 workers, 2 runtime threads, 2 blocking threads",
+      "command": [
+        ".venv/bin/granian",
+        "--interface",
+        "wsgi",
+        "--http",
+        "1",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18082",
+        "--workers",
+        "2",
+        "--runtime-threads",
+        "2",
+        "--blocking-threads",
+        "2",
+        "--working-dir",
+        "./django_test_app",
+        "config.wsgi:application"
+      ],
+      "cwd": ".",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+        "VIRTUAL_ENV": ".venv"
+      }
+    }
+  ],
+  "request_script": "scripts/wrk_integrated_mixed.lua",
+  "request_contract": {
+    "distribution": "70% GET /rps_plain; 20% GET /rps_heavy; 10% POST /rps_heavy with a 10 MiB body",
+    "heavy_delay_ms": 25,
+    "max_body_bytes": 12582912,
+    "django_behavior": "Heavy GETs sleep 25 ms. Large POSTs are read fully and then sleep 25 ms; every response body is short."
+  }
+}

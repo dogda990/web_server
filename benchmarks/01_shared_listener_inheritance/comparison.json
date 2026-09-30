@@ -1,0 +1,92 @@
+{
+  "id": "01_shared_listener_inheritance",
+  "title": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+  "method_under_test": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+  "comparison_scope": "Изолированное сравнение базовой конфигурации без пяти методов и конфигурации с единственным методом: Механизм наследования ресурсов (Shared Listener Inheritance).",
+  "request_script": "scripts/wrk_post_body.lua",
+  "request_contract": {
+    "method": "POST",
+    "path": "/post",
+    "content_type": "application/octet-stream",
+    "body_bytes": 1024,
+    "django_behavior": "Тестовое представление Django читает тело запроса и формирует JSON-ответ; записи в базу данных нет."
+  },
+  "variants": [
+    {
+      "label": "baseline-no-method",
+      "url": "http://127.0.0.1:18110/post",
+      "server": "kubstu WSGI baseline; 2 worker(s), no tested method enabled",
+      "command": [
+        "./target/release/kubstu_web_server",
+        "--interface",
+        "wsgi",
+        "config.wsgi:application",
+        "--working-dir",
+        "./django_test_app",
+        "--host",
+        "127.0.0.1",
+        "--workers",
+        "2",
+        "--runtime-threads",
+        "2",
+        "--python-threads",
+        "2",
+        "--python-queue-capacity",
+        "256",
+        "--listener-mode",
+        "reuseport",
+        "--python-mode",
+        "inline",
+        "--bounded-python-queue",
+        "false",
+        "--compact-body-buffer",
+        "false",
+        "--port",
+        "18110"
+      ],
+      "cwd": ".",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+        "VIRTUAL_ENV": ".venv"
+      }
+    },
+    {
+      "label": "Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "url": "http://127.0.0.1:18111/post",
+      "server": "kubstu WSGI; baseline plus Механизм наследования ресурсов (Shared Listener Inheritance)",
+      "command": [
+        "./target/release/kubstu_web_server",
+        "--interface",
+        "wsgi",
+        "config.wsgi:application",
+        "--working-dir",
+        "./django_test_app",
+        "--host",
+        "127.0.0.1",
+        "--workers",
+        "2",
+        "--runtime-threads",
+        "2",
+        "--python-threads",
+        "2",
+        "--python-queue-capacity",
+        "256",
+        "--listener-mode",
+        "shared",
+        "--python-mode",
+        "inline",
+        "--bounded-python-queue",
+        "false",
+        "--compact-body-buffer",
+        "false",
+        "--port",
+        "18111"
+      ],
+      "cwd": ".",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+        "VIRTUAL_ENV": ".venv"
+      }
+    }
+  ]
+}

@@ -1,0 +1,820 @@
+{
+  "started_at_utc": "2026-09-30T10:00:49.608732+00:00",
+  "host": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "processor": "arm",
+    "logical_cpus": 8,
+    "ram_bytes": 8589934592,
+    "python": "3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]",
+    "django_version": "6.0.8",
+    "granian_version": "2.8.3",
+    "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01) (Homebrew)"
+  },
+  "profile": {
+    "id": "04_zero_copy",
+    "title": "Селективное управление телом запроса и Zero-copy буферы",
+    "method_under_test": "Селективное управление телом запроса и Zero-copy буферы",
+    "comparison_scope": "Изолированное сравнение базовой конфигурации без пяти методов и конфигурации с единственным методом: Селективное управление телом запроса и Zero-copy буферы.",
+    "request_script": "scripts/wrk_large_body.lua",
+    "request_contract": {
+      "method": "POST",
+      "path": "/rps_heavy?delay_ms=0",
+      "content_type": "application/octet-stream",
+      "body_bytes": 10485760,
+      "django_behavior": "Django reads the complete 10 MiB body and returns only its byte length; the synthetic delay is set to zero so the measurement focuses on body handling."
+    },
+    "variants": [
+      {
+        "label": "baseline-no-method",
+        "url": "http://127.0.0.1:18140/rps_plain",
+        "server": "kubstu WSGI baseline; 2 worker(s), no tested method enabled",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--workers",
+          "2",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "reuseport",
+          "--python-mode",
+          "inline",
+          "--bounded-python-queue",
+          "false",
+          "--compact-body-buffer",
+          "false",
+          "--port",
+          "18140",
+          "--max-body-bytes",
+          "12582912"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      },
+      {
+        "label": "Селективное управление телом запроса и Zero-copy буферы",
+        "url": "http://127.0.0.1:18141/rps_plain",
+        "server": "kubstu WSGI; baseline plus Селективное управление телом запроса и Zero-copy буферы",
+        "command": [
+          "./target/release/kubstu_web_server",
+          "--interface",
+          "wsgi",
+          "config.wsgi:application",
+          "--working-dir",
+          "./django_test_app",
+          "--host",
+          "127.0.0.1",
+          "--workers",
+          "2",
+          "--runtime-threads",
+          "2",
+          "--python-threads",
+          "2",
+          "--python-queue-capacity",
+          "256",
+          "--listener-mode",
+          "reuseport",
+          "--python-mode",
+          "inline",
+          "--bounded-python-queue",
+          "false",
+          "--compact-body-buffer",
+          "true",
+          "--port",
+          "18141",
+          "--max-body-bytes",
+          "12582912"
+        ],
+        "cwd": ".",
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings_perf",
+          "VIRTUAL_ENV": ".venv"
+        }
+      }
+    ]
+  },
+  "load": {
+    "generator": "wrk",
+    "version": "wrk 4.2.0 [kqueue] Copyright (C) 2012 Will Glozer",
+    "cycles": 10,
+    "duration_seconds": 5,
+    "threads": 4,
+    "connections": 16,
+    "warmup_rounds_per_variant": 2,
+    "cooldown_seconds": 1.0
+  },
+  "summary": {
+    "baseline-no-method": {
+      "rounds": 10,
+      "mean_rps": 265.94100000000003,
+      "mean_successful_rps": 265.94100000000003,
+      "stdev_rps": 21.969666183677486,
+      "median_p95_ms": 74.2575,
+      "median_p99_ms": 82.6515,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    },
+    "Селективное управление телом запроса и Zero-copy буферы": {
+      "rounds": 10,
+      "mean_rps": 287.51,
+      "mean_successful_rps": 287.51,
+      "stdev_rps": 18.485917162351814,
+      "median_p95_ms": 70.737,
+      "median_p99_ms": 80.741,
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      }
+    }
+  },
+  "paired_comparison": {
+    "baseline": "baseline-no-method",
+    "treatment": "Селективное управление телом запроса и Zero-copy буферы",
+    "paired_cycles": 10,
+    "rps": {
+      "mean_treatment_minus_baseline": 21.569,
+      "sample_sd": 19.171709742337654,
+      "ci95_low": 7.855337855968449,
+      "ci95_high": 35.28266214403155,
+      "relative_to_baseline_pct": 8.110445549952809
+    },
+    "successful_rps": {
+      "mean_treatment_minus_baseline": 21.569,
+      "sample_sd": 19.171709742337654,
+      "ci95_low": 7.855337855968449,
+      "ci95_high": 35.28266214403155,
+      "relative_to_baseline_pct": 8.110445549952809
+    },
+    "p95_treatment_minus_baseline_median_ms": -4.962,
+    "p99_treatment_minus_baseline_median_ms": -4.150500000000001
+  },
+  "rounds": [
+    {
+      "cycle": 1,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 270.26,
+      "successful_rps": 270.26,
+      "latency_percentiles_ms": {
+        "p95": 72.397,
+        "p99": 79.846
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18140/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18140/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    54.22ms   13.10ms  89.03ms   70.80%\n    Req/Sec    67.53      8.89    90.00     74.00%\n  Latency Distribution\n     50%   55.96ms\n     75%   63.49ms\n     90%   69.33ms\n     99%   79.85ms\n  1370 requests in 5.07s, 216.74KB read\nRequests/sec:    270.26\nTransfer/sec:     42.76KB\nCUSTOM_P95_MS: 72.397\nCUSTOM_P99_MS: 79.846\n\n"
+    },
+    {
+      "cycle": 1,
+      "position": 2,
+      "variant": "Селективное управление телом запроса и Zero-copy буферы",
+      "rps": 281.78,
+      "successful_rps": 281.78,
+      "latency_percentiles_ms": {
+        "p95": 69.897,
+        "p99": 76.726
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18141/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18141/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    51.45ms   12.45ms 107.10ms   70.06%\n    Req/Sec    70.44      9.94    90.00     75.50%\n  Latency Distribution\n     50%   52.52ms\n     75%   59.84ms\n     90%   65.62ms\n     99%   76.73ms\n  1436 requests in 5.10s, 227.18KB read\nRequests/sec:    281.78\nTransfer/sec:     44.58KB\nCUSTOM_P95_MS: 69.897\nCUSTOM_P99_MS: 76.726\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 1,
+      "variant": "Селективное управление телом запроса и Zero-copy буферы",
+      "rps": 281.79,
+      "successful_rps": 281.79,
+      "latency_percentiles_ms": {
+        "p95": 70.816,
+        "p99": 78.392
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18141/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18141/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    51.47ms   13.57ms 128.93ms   69.41%\n    Req/Sec    70.39      8.87    90.00     63.00%\n  Latency Distribution\n     50%   52.67ms\n     75%   61.09ms\n     90%   67.25ms\n     99%   78.39ms\n  1434 requests in 5.09s, 226.86KB read\nRequests/sec:    281.79\nTransfer/sec:     44.58KB\nCUSTOM_P95_MS: 70.816\nCUSTOM_P99_MS: 78.392\n\n"
+    },
+    {
+      "cycle": 2,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 257.16,
+      "successful_rps": 257.16,
+      "latency_percentiles_ms": {
+        "p95": 79.135,
+        "p99": 89.353
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18140/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18140/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    56.91ms   15.78ms 157.15ms   70.98%\n    Req/Sec    64.71     10.83    87.00     75.76%\n  Latency Distribution\n     50%   58.18ms\n     75%   66.61ms\n     90%   74.49ms\n     99%   89.35ms\n  1308 requests in 5.09s, 206.93KB read\nRequests/sec:    257.16\nTransfer/sec:     40.68KB\nCUSTOM_P95_MS: 79.135\nCUSTOM_P99_MS: 89.353\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 261.62,
+      "successful_rps": 261.62,
+      "latency_percentiles_ms": {
+        "p95": 77.36,
+        "p99": 82.865
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18140/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18140/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    55.98ms   14.37ms  91.05ms   69.02%\n    Req/Sec    65.53      8.59    81.00     77.00%\n  Latency Distribution\n     50%   57.55ms\n     75%   65.91ms\n     90%   73.80ms\n     99%   82.86ms\n  1333 requests in 5.10s, 210.88KB read\nRequests/sec:    261.62\nTransfer/sec:     41.39KB\nCUSTOM_P95_MS: 77.360\nCUSTOM_P99_MS: 82.865\n\n"
+    },
+    {
+      "cycle": 3,
+      "position": 2,
+      "variant": "Селективное управление телом запроса и Zero-copy буферы",
+      "rps": 272.73,
+      "successful_rps": 272.73,
+      "latency_percentiles_ms": {
+        "p95": 74.806,
+        "p99": 85.501
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18141/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18141/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    52.99ms   14.46ms  97.24ms   68.66%\n    Req/Sec    68.31      9.49    90.00     74.87%\n  Latency Distribution\n     50%   54.62ms\n     75%   62.56ms\n     90%   69.67ms\n     99%   85.50ms\n  1388 requests in 5.09s, 219.59KB read\nRequests/sec:    272.73\nTransfer/sec:     43.15KB\nCUSTOM_P95_MS: 74.806\nCUSTOM_P99_MS: 85.501\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 1,
+      "variant": "Селективное управление телом запроса и Zero-copy буферы",
+      "rps": 288.56,
+      "successful_rps": 288.56,
+      "latency_percentiles_ms": {
+        "p95": 73.374,
+        "p99": 85.055
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18141/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18141/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    49.95ms   14.31ms 109.86ms   70.35%\n    Req/Sec    72.19     12.69   100.00     77.39%\n  Latency Distribution\n     50%   50.32ms\n     75%   59.25ms\n     90%   67.17ms\n     99%   85.06ms\n  1474 requests in 5.11s, 233.19KB read\nRequests/sec:    288.56\nTransfer/sec:     45.65KB\nCUSTOM_P95_MS: 73.374\nCUSTOM_P99_MS: 85.055\n\n"
+    },
+    {
+      "cycle": 4,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 220.33,
+      "successful_rps": 220.33,
+      "latency_percentiles_ms": {
+        "p95": 107.67,
+        "p99": 175.361
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18140/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18140/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    66.73ms   27.40ms 260.12ms   80.84%\n    Req/Sec    55.86     16.53   179.00     83.08%\n  Latency Distribution\n     50%   65.22ms\n     75%   76.73ms\n     90%   91.17ms\n     99%  175.36ms\n  1124 requests in 5.10s, 177.82KB read\nRequests/sec:    220.33\nTransfer/sec:     34.86KB\nCUSTOM_P95_MS: 107.670\nCUSTOM_P99_MS: 175.361\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 265.65,
+      "successful_rps": 265.65,
+      "latency_percentiles_ms": {
+        "p95": 75.313,
+        "p99": 81.819
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18140/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18140/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    54.79ms   13.54ms  95.26ms   70.14%\n    Req/Sec    66.62      9.29   100.00     72.00%\n  Latency Distribution\n     50%   55.99ms\n     75%   63.87ms\n     90%   70.64ms\n     99%   81.82ms\n  1353 requests in 5.09s, 214.05KB read\nRequests/sec:    265.65\nTransfer/sec:     42.03KB\nCUSTOM_P95_MS: 75.313\nCUSTOM_P99_MS: 81.819\n\n"
+    },
+    {
+      "cycle": 5,
+      "position": 2,
+      "variant": "Селективное управление телом запроса и Zero-copy буферы",
+      "rps": 280.28,
+      "successful_rps": 280.28,
+      "latency_percentiles_ms": {
+        "p95": 70.575,
+        "p99": 78.817
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18141/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18141/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    51.33ms   13.73ms 111.85ms   69.45%\n    Req/Sec    70.79     11.81   176.00     89.29%\n  Latency Distribution\n     50%   53.04ms\n     75%   60.76ms\n     90%   67.02ms\n     99%   78.82ms\n  1424 requests in 5.08s, 225.28KB read\nRequests/sec:    280.28\nTransfer/sec:     44.34KB\nCUSTOM_P95_MS: 70.575\nCUSTOM_P99_MS: 78.817\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 1,
+      "variant": "Селективное управление телом запроса и Zero-copy буферы",
+      "rps": 282.32,
+      "successful_rps": 282.32,
+      "latency_percentiles_ms": {
+        "p95": 72.2,
+        "p99": 82.665
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18141/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18141/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    51.11ms   12.93ms  91.64ms   70.51%\n    Req/Sec    70.83     10.22    90.00     70.85%\n  Latency Distribution\n     50%   51.03ms\n     75%   59.51ms\n     90%   67.08ms\n     99%   82.67ms\n  1441 requests in 5.10s, 227.97KB read\nRequests/sec:    282.32\nTransfer/sec:     44.66KB\nCUSTOM_P95_MS: 72.200\nCUSTOM_P99_MS: 82.665\n\n"
+    },
+    {
+      "cycle": 6,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 283.47,
+      "successful_rps": 283.47,
+      "latency_percentiles_ms": {
+        "p95": 73.202,
+        "p99": 82.438
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18140/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18140/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    51.62ms   13.91ms 101.48ms   71.64%\n    Req/Sec    71.13      9.67    90.00     75.88%\n  Latency Distribution\n     50%   53.24ms\n     75%   60.28ms\n     90%   67.27ms\n     99%   82.44ms\n  1442 requests in 5.09s, 228.13KB read\nRequests/sec:    283.47\nTransfer/sec:     44.85KB\nCUSTOM_P95_MS: 73.202\nCUSTOM_P99_MS: 82.438\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 288.26,
+      "successful_rps": 288.26,
+      "latency_percentiles_ms": {
+        "p95": 68.458,
+        "p99": 74.701
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18140/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18140/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    50.82ms   12.03ms  84.49ms   70.23%\n    Req/Sec    72.14      8.30    90.00     83.92%\n  Latency Distribution\n     50%   51.96ms\n     75%   59.20ms\n     90%   65.20ms\n     99%   74.70ms\n  1461 requests in 5.07s, 231.13KB read\nRequests/sec:    288.26\nTransfer/sec:     45.60KB\nCUSTOM_P95_MS: 68.458\nCUSTOM_P99_MS: 74.701\n\n"
+    },
+    {
+      "cycle": 7,
+      "position": 2,
+      "variant": "Селективное управление телом запроса и Zero-copy буферы",
+      "rps": 316.94,
+      "successful_rps": 316.94,
+      "latency_percentiles_ms": {
+        "p95": 63.272,
+        "p99": 69.52
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18141/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18141/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    45.70ms   12.32ms  79.56ms   67.45%\n    Req/Sec    79.40      9.98   100.00     78.89%\n  Latency Distribution\n     50%   47.20ms\n     75%   54.21ms\n     90%   60.26ms\n     99%   69.52ms\n  1613 requests in 5.09s, 255.18KB read\nRequests/sec:    316.94\nTransfer/sec:     50.14KB\nCUSTOM_P95_MS: 63.272\nCUSTOM_P99_MS: 69.520\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 1,
+      "variant": "Селективное управление телом запроса и Zero-copy буферы",
+      "rps": 320.1,
+      "successful_rps": 320.1,
+      "latency_percentiles_ms": {
+        "p95": 62.916,
+        "p99": 67.182
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18141/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18141/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    45.22ms   12.00ms  75.04ms   67.42%\n    Req/Sec    80.39      8.78   141.00     71.36%\n  Latency Distribution\n     50%   46.81ms\n     75%   53.80ms\n     90%   59.62ms\n     99%   67.18ms\n  1627 requests in 5.08s, 257.40KB read\nRequests/sec:    320.10\nTransfer/sec:     50.64KB\nCUSTOM_P95_MS: 62.916\nCUSTOM_P99_MS: 67.182\n\n"
+    },
+    {
+      "cycle": 8,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 288.18,
+      "successful_rps": 288.18,
+      "latency_percentiles_ms": {
+        "p95": 70.925,
+        "p99": 81.181
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18140/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18140/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    50.92ms   13.29ms  94.50ms   71.17%\n    Req/Sec    72.00      9.24    90.00     76.50%\n  Latency Distribution\n     50%   52.26ms\n     75%   59.30ms\n     90%   66.81ms\n     99%   81.18ms\n  1467 requests in 5.09s, 232.08KB read\nRequests/sec:    288.18\nTransfer/sec:     45.59KB\nCUSTOM_P95_MS: 70.925\nCUSTOM_P99_MS: 81.181\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 1,
+      "variant": "baseline-no-method",
+      "rps": 282.51,
+      "successful_rps": 282.51,
+      "latency_percentiles_ms": {
+        "p95": 73.092,
+        "p99": 97.227
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18140/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18140/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    52.03ms   15.18ms 149.57ms   73.50%\n    Req/Sec    70.66     10.51   101.00     70.50%\n  Latency Distribution\n     50%   53.49ms\n     75%   60.63ms\n     90%   68.51ms\n     99%   97.23ms\n  1442 requests in 5.10s, 228.13KB read\nRequests/sec:    282.51\nTransfer/sec:     44.69KB\nCUSTOM_P95_MS: 73.092\nCUSTOM_P99_MS: 97.227\n\n"
+    },
+    {
+      "cycle": 9,
+      "position": 2,
+      "variant": "Селективное управление телом запроса и Zero-copy буферы",
+      "rps": 290.87,
+      "successful_rps": 290.87,
+      "latency_percentiles_ms": {
+        "p95": 70.658,
+        "p99": 91.605
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18141/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18141/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    49.90ms   14.14ms 133.60ms   72.75%\n    Req/Sec    72.95     11.37   101.00     73.87%\n  Latency Distribution\n     50%   50.67ms\n     75%   57.81ms\n     90%   65.84ms\n     99%   91.61ms\n  1485 requests in 5.11s, 234.93KB read\nRequests/sec:    290.87\nTransfer/sec:     46.02KB\nCUSTOM_P95_MS: 70.658\nCUSTOM_P99_MS: 91.605\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 1,
+      "variant": "Селективное управление телом запроса и Zero-copy буферы",
+      "rps": 259.73,
+      "successful_rps": 259.73,
+      "latency_percentiles_ms": {
+        "p95": 82.466,
+        "p99": 105.261
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18141/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18141/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    56.27ms   22.76ms 412.10ms   83.46%\n    Req/Sec    65.25     14.11   141.00     68.18%\n  Latency Distribution\n     50%   55.96ms\n     75%   66.00ms\n     90%   74.27ms\n     99%  105.26ms\n  1323 requests in 5.09s, 209.30KB read\nRequests/sec:    259.73\nTransfer/sec:     41.09KB\nCUSTOM_P95_MS: 82.466\nCUSTOM_P99_MS: 105.261\n\n"
+    },
+    {
+      "cycle": 10,
+      "position": 2,
+      "variant": "baseline-no-method",
+      "rps": 241.97,
+      "successful_rps": 241.97,
+      "latency_percentiles_ms": {
+        "p95": 88.098,
+        "p99": 101.312
+      },
+      "errors": {
+        "non_2xx_or_3xx": 0,
+        "connect": 0,
+        "read": 0,
+        "write": 0,
+        "timeout": 0
+      },
+      "command": [
+        "wrk",
+        "-t",
+        "4",
+        "-c",
+        "16",
+        "-d",
+        "5s",
+        "--latency",
+        "-s",
+        "scripts/wrk_large_body.lua",
+        "http://127.0.0.1:18140/rps_plain"
+      ],
+      "raw_output": "Running 5s test @ http://127.0.0.1:18140/rps_plain\n  4 threads and 16 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency    60.31ms   17.03ms 139.06ms   70.75%\n    Req/Sec    60.86     11.24   101.00     83.16%\n  Latency Distribution\n     50%   61.26ms\n     75%   70.30ms\n     90%   80.97ms\n     99%  101.31ms\n  1223 requests in 5.05s, 193.48KB read\nRequests/sec:    241.97\nTransfer/sec:     38.28KB\nCUSTOM_P95_MS: 88.098\nCUSTOM_P99_MS: 101.312\n\n"
+    }
+  ],
+  "notes": [
+    "Order alternates between baseline-first and treatment-first by cycle.",
+    "p95/p99 are per-round wrk latency percentiles collected through the included Lua script; summary reports their median across rounds.",
+    "Both endpoints must use the same Django application, method, path and response body."
+  ]
+}
